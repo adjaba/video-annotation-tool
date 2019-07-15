@@ -38,16 +38,10 @@ import { Header, Form, Button } from "semantic-ui-react";
 
 var URL = window.URL || window.webkitURL;
 
-var videoJsOptions = {
+const videoJsOptions = {
   autoplay: true,
   controls: true,
   preload: "none"
-  // sources: [
-  //   {
-  //     src: "",
-  //     type: "video/mp4"
-  //   }
-  // ]
 };
 
 class App extends Component {
@@ -57,47 +51,24 @@ class App extends Component {
       video: null,
       sources: []
     };
-    // this.handleFilesSubmit = this.handleFilesSubmit.bind(this);
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
   }
 
   playSelectedFile(event) {
-    console.log(event.target.files[0]);
     var file = event.target.files[0];
-    // var type = file.type
-    var videoNode = document.querySelector("video");
     var myPlayer = videojs.getPlayer("videoJS");
-    console.log(myPlayer.canPlayType(file.type));
-    // var canPlay = videoNode.canPlayType(type)
-    // if (canPlay === '') canPlay = 'no'
-    // var message = 'Can play type "' + type + '": ' + canPlay
-    // var isError = canPlay === 'no'
-    // displayMessage(message, isError)
 
-    // if (isError) {
-    //   return
-    // }
+    if (myPlayer.canPlayType(file.type) === "") {
+      alert("Cannot play video, please select a different video.");
+      return;
+    }
 
     var fileURL = URL.createObjectURL(file);
-    videoNode.src = fileURL;
-    // var sources = this.state.sources;
-    // this.setState({
-    //   "sources": sources.push({
-    //     "src": fileURL,
-    //     "type": file.type,
-    //   })
-    // })
-    videoJsOptions["sources"] = [Object()];
-    videoJsOptions["sources"][0]["src"] = fileURL;
-    videoJsOptions["sources"][0]["type"] = file.type;
-    // console.log(videoJsOptions);
-    // videoJsOptions = {
-    //   autoplay: true,
-    //   controls: true,
-    //   preload: "none",
-    //   sources: this.state.sources,
-    // };
+    myPlayer.src({
+      src: fileURL,
+      type: file.type
+    });
   }
 
   jumpTo() {
@@ -182,12 +153,8 @@ class App extends Component {
               this.playSelectedFile(e);
             }}
           />
-          <video id="video" controls autoPlay />
-          {/* below this.state.video should be a prop passed on from project page */}
-          {/* <VideoPlayer id = 'videoJS' {...videoJsOptions} /> */}
-          {this.state.video ? (
-            <VideoPlayer id="videoJS" {...videoJsOptions} />
-          ) : null}
+          {/* below this.state.video should be a prop passed on from project page or maybe not*/}
+          <VideoPlayer id="videoJS" {...videoJsOptions} />
           <input type="number" id="start" onChange={this.jumpTo}></input>
           <input type="number" id="end" onChange={this.jumpTo}></input>
         </div>
