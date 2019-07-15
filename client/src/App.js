@@ -38,7 +38,7 @@ import { Header, Form, Button } from "semantic-ui-react";
 
 var URL = window.URL || window.webkitURL;
 
-const videoJsOptions = {
+var videoJsOptions = {
   autoplay: true,
   controls: true,
   preload: "none"
