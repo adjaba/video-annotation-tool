@@ -60,7 +60,11 @@ class App extends Component {
     var myPlayer = videojs.getPlayer("videoJS");
 
     if (myPlayer.canPlayType(file.type) === "") {
-      alert("Cannot play video, please select a different video.");
+      alert(
+        "Cannot play video with type " +
+          file.type +
+          ", please select a different video or use a different browser."
+      );
       return;
     }
 
@@ -73,9 +77,20 @@ class App extends Component {
 
   jumpTo() {
     var myPlayer = videojs.getPlayer("videoJS");
-    var start = document.getElementById("start").value;
-    console.log(myPlayer, start);
+    var start = parseInt(document.getElementById("start").value) || 0;
+    var end =
+      parseInt(document.getElementById("end").value) || myPlayer.duration();
     myPlayer.currentTime(start);
+    if (end > start) {
+      myPlayer.on("timeupdate", function(e) {
+        if (myPlayer.currentTime() >= end) {
+          myPlayer.pause();
+        }
+      });
+    } else {
+      myPlayer.off("timeupdate");
+      myPlayer.play();
+    }
     myPlayer.play();
   }
   // async handleFilesSubmit(e) {
@@ -145,7 +160,7 @@ class App extends Component {
           <Button type="submit">Upload</Button>
         </Form> */}
           <input
-            id="input"
+            id="input_video"
             type="file"
             accept="video/*"
             onChange={e => {
@@ -153,6 +168,7 @@ class App extends Component {
               this.playSelectedFile(e);
             }}
           />
+          <input id="input_json" type="file" accept=".json, application/json" />
           {/* below this.state.video should be a prop passed on from project page or maybe not*/}
           <VideoPlayer id="videoJS" {...videoJsOptions} />
           <input type="number" id="start" onChange={this.jumpTo}></input>
