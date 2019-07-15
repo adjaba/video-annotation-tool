@@ -44,6 +44,12 @@ var videoJsOptions = {
   preload: "none"
 };
 
+var videoPreviewOptions = {
+  autoplay: false,
+  controls: false,
+  preload: "none"
+};
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -73,13 +79,26 @@ class App extends Component {
       src: fileURL,
       type: file.type
     });
+
+    var screenStart = videojs.getPlayer("videoJSStart");
+    screenStart.src({
+      src: fileURL,
+      type: file.type
+    });
+
+    var screenEnd = videojs.getPlayer("videoJSEnd");
+    screenEnd.src({
+      src: fileURL,
+      type: file.type
+    });
   }
 
   jumpTo() {
     var myPlayer = videojs.getPlayer("videoJS");
-    var start = parseInt(document.getElementById("start").value) || 0;
+    var start = parseInt(document.getElementById("start").value) / 29.97 || 0;
     var end =
-      parseInt(document.getElementById("end").value) || myPlayer.duration();
+      parseInt(document.getElementById("end").value) / 29.97 ||
+      myPlayer.duration();
     myPlayer.currentTime(start);
     if (end > start) {
       myPlayer.on("timeupdate", function(e) {
@@ -92,6 +111,12 @@ class App extends Component {
       myPlayer.play();
     }
     myPlayer.play();
+
+    var screenStart = videojs.getPlayer("videoJSStart");
+    screenStart.currentTime(start);
+
+    var screenEnd = videojs.getPlayer("videoJSEnd");
+    screenEnd.currentTime(end);
   }
   // async handleFilesSubmit(e) {
   //   console.log(e);
@@ -172,7 +197,9 @@ class App extends Component {
           {/* below this.state.video should be a prop passed on from project page or maybe not*/}
           <VideoPlayer id="videoJS" {...videoJsOptions} />
           <input type="number" id="start" onChange={this.jumpTo}></input>
+          <VideoPlayer id="videoJSStart" {...videoPreviewOptions} />
           <input type="number" id="end" onChange={this.jumpTo}></input>
+          <VideoPlayer id="videoJSEnd" {...videoPreviewOptions} />
         </div>
       </div>
     );
