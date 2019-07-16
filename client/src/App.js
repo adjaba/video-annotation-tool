@@ -41,7 +41,8 @@ var URL = window.URL || window.webkitURL;
 var videoJsOptions = {
   autoplay: true,
   controls: true,
-  preload: "none"
+  preload: "none",
+  height: 400
 };
 
 var videoPreviewOptions = {
@@ -54,12 +55,30 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      video: null
+      videoName: null,
+      json: null,
+      metadata: null
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
     this.parseJSONInput = this.parseJSONInput.bind(this);
     this.frameToSecs = this.frameToSecs.bind(this);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const videoNameJSONUpdated =
+      prevState["videoName"] !== this.state.videoName ||
+      prevState["json"] !== this.state.json;
+    if (videoNameJSONUpdated && this.state.videoName && this.state.json) {
+      console.log(Object.keys(this.state.json));
+      if (Object.keys(this.state.json).indexOf(this.state.videoName) >= 0) {
+        this.setState({
+          metadata: this.state.json[this.state.videoName]
+        });
+      } else {
+        alert("Upload a video with the correct filename.");
+      }
+    }
   }
 
   playSelectedFile(event) {
@@ -84,14 +103,24 @@ class App extends Component {
         type: file.type
       });
     });
+    this.setState({
+      videoName: file.name.substring(0, file.name.lastIndexOf("."))
+    });
   }
 
   parseJSONInput(event) {
-    console.log(event.target.files[0]);
     var reader = new FileReader();
-    reader.onload = function(event) {
-      console.log(JSON.parse(event.target.result)["database"]);
+    reader.onload = event => {
+      this.setState({
+        json: JSON.parse(event.target.result)["database"]
+      });
     };
+    // } function(event){
+    //   console.log(JSON.parse(event.target.result)['database']);
+    //   this.setState({
+    //     metadata: JSON.parse(event.target.result)['database'],
+    //   })
+    // }
     reader.readAsText(event.target.files[0]);
   }
 
@@ -109,6 +138,7 @@ class App extends Component {
     myPlayer.currentTime(start);
 
     myPlayer.off("timeupdate");
+
     if (end > start) {
       myPlayer.on("timeupdate", function(e) {
         if (myPlayer.currentTime() >= end) {
@@ -212,10 +242,41 @@ class App extends Component {
           />
           {/* below this.state.video should be a prop passed on from project page or maybe not*/}
           <VideoPlayer id="videoJS" {...videoJsOptions} />
-          <input type="number" id="start" onChange={this.jumpTo}></input>
-          <VideoPlayer id="videoJSStart" {...videoPreviewOptions} />
-          <input type="number" id="end" onChange={this.jumpTo}></input>
-          <VideoPlayer id="videoJSEnd" {...videoPreviewOptions} />
+
+          <div
+            style={{
+              display: "flex",
+              flex: "1 1 0",
+              flexDirection: "row",
+              height: "100%",
+              backgroundColor: "#ddd",
+              alignItems: "center",
+              justifyContent: "space-around"
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                padding: 5
+              }}
+            >
+              <input type="number" id="start" onChange={this.jumpTo}></input>
+              <VideoPlayer id="videoJSStart" {...videoPreviewOptions} />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                padding: 5
+              }}
+            >
+              <input type="number" id="end" onChange={this.jumpTo}></input>
+              <VideoPlayer id="videoJSEnd" {...videoPreviewOptions} />
+            </div>
+          </div>
         </div>
       </div>
     );
