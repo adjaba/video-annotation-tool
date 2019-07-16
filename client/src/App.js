@@ -54,11 +54,12 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      video: null,
-      sources: []
+      video: null
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
+    this.parseJSONInput = this.parseJSONInput.bind(this);
+    this.frameToSecs = this.frameToSecs.bind(this);
   }
 
   playSelectedFile(event) {
@@ -66,7 +67,6 @@ class App extends Component {
     const players = ["videoJS", "videoJSStart", "videoJSEnd"].map(id =>
       videojs.getPlayer(id)
     );
-    // var myPlayer = videojs.getPlayer("videoJS");
 
     if (players[0].canPlayType(file.type) === "") {
       alert(
@@ -86,26 +86,38 @@ class App extends Component {
     });
   }
 
+  parseJSONInput(event) {
+    console.log(event.target.files[0]);
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      console.log(JSON.parse(event.target.result)["database"]);
+    };
+    reader.readAsText(event.target.files[0]);
+  }
+
+  frameToSecs(frame, fps) {
+    return Math.floor(frame / fps) + parseInt(frame % fps) / fps;
+  }
+
   jumpTo() {
     var myPlayer = videojs.getPlayer("videoJS");
-    var start =
-      Math.floor(parseInt(document.getElementById("start").value) / 29.97) +
-        parseInt(document.getElementById("start").value % 29.97) / 29.97 || 0;
-    var end =
-      Math.floor(parseInt(document.getElementById("end").value) / 29.97) +
-        parseInt(document.getElementById("end").value % 29.97) / 29.97 ||
-      myPlayer.duration();
+    var startInput = parseInt(document.getElementById("start").value);
+    var endInput = parseInt(document.getElementById("end").value);
+    var start = this.frameToSecs(startInput, 29.97) || 0;
+    var end = this.frameToSecs(endInput, 29.97) || myPlayer.duration();
+    console.log(start, end);
     myPlayer.currentTime(start);
+
+    myPlayer.off("timeupdate");
     if (end > start) {
       myPlayer.on("timeupdate", function(e) {
         if (myPlayer.currentTime() >= end) {
+          console.log("paused", myPlayer.currentTime(), end);
           myPlayer.pause();
         }
       });
-    } else {
-      myPlayer.off("timeupdate");
-      myPlayer.play();
     }
+
     myPlayer.play();
 
     var screenStart = videojs.getPlayer("videoJSStart");
@@ -186,11 +198,18 @@ class App extends Component {
             type="file"
             accept="video/*"
             onChange={e => {
-              this.setState({ video: e.target.value });
+              // this.setState({ video: e.target.value });
               this.playSelectedFile(e);
             }}
           />
-          <input id="input_json" type="file" accept=".json, application/json" />
+          <input
+            id="input_json"
+            type="file"
+            accept=".json, application/json"
+            onChange={e => {
+              this.parseJSONInput(e);
+            }}
+          />
           {/* below this.state.video should be a prop passed on from project page or maybe not*/}
           <VideoPlayer id="videoJS" {...videoJsOptions} />
           <input type="number" id="start" onChange={this.jumpTo}></input>
