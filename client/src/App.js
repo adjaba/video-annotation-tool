@@ -46,8 +46,8 @@ var videoJsOptions = {
 
 var videoPreviewOptions = {
   autoplay: false,
-  controls: false,
-  preload: "none"
+  preload: "auto",
+  height: 200
 };
 
 class App extends Component {
@@ -63,9 +63,12 @@ class App extends Component {
 
   playSelectedFile(event) {
     var file = event.target.files[0];
-    var myPlayer = videojs.getPlayer("videoJS");
+    const players = ["videoJS", "videoJSStart", "videoJSEnd"].map(id =>
+      videojs.getPlayer(id)
+    );
+    // var myPlayer = videojs.getPlayer("videoJS");
 
-    if (myPlayer.canPlayType(file.type) === "") {
+    if (players[0].canPlayType(file.type) === "") {
       alert(
         "Cannot play video with type " +
           file.type +
@@ -75,29 +78,22 @@ class App extends Component {
     }
 
     var fileURL = URL.createObjectURL(file);
-    myPlayer.src({
-      src: fileURL,
-      type: file.type
-    });
-
-    var screenStart = videojs.getPlayer("videoJSStart");
-    screenStart.src({
-      src: fileURL,
-      type: file.type
-    });
-
-    var screenEnd = videojs.getPlayer("videoJSEnd");
-    screenEnd.src({
-      src: fileURL,
-      type: file.type
+    players.forEach(function(player) {
+      player.src({
+        src: fileURL,
+        type: file.type
+      });
     });
   }
 
   jumpTo() {
     var myPlayer = videojs.getPlayer("videoJS");
-    var start = parseInt(document.getElementById("start").value) / 29.97 || 0;
+    var start =
+      Math.floor(parseInt(document.getElementById("start").value) / 29.97) +
+        parseInt(document.getElementById("start").value % 29.97) / 29.97 || 0;
     var end =
-      parseInt(document.getElementById("end").value) / 29.97 ||
+      Math.floor(parseInt(document.getElementById("end").value) / 29.97) +
+        parseInt(document.getElementById("end").value % 29.97) / 29.97 ||
       myPlayer.duration();
     myPlayer.currentTime(start);
     if (end > start) {
@@ -113,6 +109,7 @@ class App extends Component {
     myPlayer.play();
 
     var screenStart = videojs.getPlayer("videoJSStart");
+    console.log("screenStart setting" + screenStart.currentSrc());
     screenStart.currentTime(start);
 
     var screenEnd = videojs.getPlayer("videoJSEnd");
