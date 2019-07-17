@@ -2,10 +2,18 @@ import React from "react";
 import videojs from "video.js";
 
 export default class VideoPlayer extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   componentDidMount() {
     // instantiate Video.js
     this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
       console.log("onPlayerReady", this);
+      this.getChild("bigPlayButton").on("click", function(event) {
+        event.preventDefault();
+        console.log("clicked play");
+        this.play();
+      });
     });
   }
 
@@ -13,6 +21,7 @@ export default class VideoPlayer extends React.Component {
   componentWillUnmount() {
     if (this.player) {
       this.player.dispose();
+      console.log("disposed");
     }
   }
 
