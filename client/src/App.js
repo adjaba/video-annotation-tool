@@ -124,6 +124,7 @@ class App extends Component {
         type: file.type
       }
     });
+    console.log(videojs.getPlayer("videoJSEnd"));
   }
 
   parseJSONInput(event) {
@@ -176,6 +177,7 @@ class App extends Component {
       frameToSecs(endInput, this.state.metadata["fps"]) || myPlayer.duration();
 
     myPlayer.currentTime(start);
+    console.log(myPlayer);
 
     if (end > start) {
       myPlayer.on("timeupdate", function(e) {
@@ -192,9 +194,9 @@ class App extends Component {
     var screenStart = videojs.getPlayer("videoJSStart");
     screenStart.currentTime(start);
 
-    // var screenEnd = videojs.getPlayer("videoJSEnd");
-    // console.log('test videopreview, ' + screenEnd)
-    // screenEnd.currentTime(end);
+    var screenEnd = videojs.getPlayer("videoJSEnd");
+    console.log("test videopreview, " + screenEnd);
+    screenEnd.currentTime(end);
   }
   // async handleFilesSubmit(e) {
   //   console.log(e);
@@ -337,7 +339,7 @@ class App extends Component {
             <VideoPreview
               name="end"
               time={this.state.segmentEnd}
-              key={this.state.segmentIndex + "end"}
+              inputKey={this.state.segmentIndex + "end"}
               onChange={this.videoPreviewChange}
               fps={this.state.metadata["fps"]}
               src={this.state.videoSrc}

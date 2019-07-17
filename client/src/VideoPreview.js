@@ -10,50 +10,28 @@ var videoPreviewOptions = {
 };
 
 export default class VideoPreview extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      time: this.props.time
-    };
-    this.id =
+  state = {
+    time: 0,
+    id:
       "videoJS" +
       this.props.name.charAt(0).toUpperCase() +
-      this.props.name.slice(1);
-  }
-
-  // when time changes
-  componentDidUpdate(prevProps, prevState) {
-    console.log("videopreview updated");
-    if (prevState["src"] !== this.props.src) {
-      videojs.getPlayer(this.id).src(this.props.src);
-    }
-    if (prevState !== this.state && this.state.time) {
-      console.log("supposed to change screen");
-      var player = videojs.getPlayer(this.id);
-      console.log(player);
-      console.log(
-        this.props.fps ? frameToSecs(this.state.time, this.props.fps) : 0
-      );
-      console.log("before");
-      console.log(player.currentTime());
-      player.currentTime(
-        this.props.fps ? frameToSecs(this.state.time, this.props.fps) : 0
-      );
-      console.log(player.currentTime());
-      console.log(player.currentSource());
-    }
-  }
-
-  handleChange = event => {
-    this.setState({
-      time: parseInt(event.target.value)
-    });
+      this.props.name.slice(1)
   };
 
-  // componentWillReceiveProps(nextProps){
-  //     this.setState({time: nextProps.time})
-  // }
+  componentDidUpdate() {
+    if (this.props.src) {
+      videojs(this.state.id).src(this.props.src);
+    }
+  }
 
+  handleChange(e) {
+    // this.setState({
+    //   time: parseInt(e.target.value),
+    // })
+    // var player = videojs(this.state.id);
+    // console.log(parseInt(e.target.value));
+    // player.currentTime(parseInt(e.target.value));
+  }
   render() {
     return (
       <div
@@ -71,9 +49,9 @@ export default class VideoPreview extends Component {
             this.handleChange(e);
             this.props.onChange(e);
           }}
-          value={this.state.time}
+          key={this.props.inputKey}
         ></input>
-        <VideoPlayer id={this.id} {...videoPreviewOptions} />
+        <VideoPlayer id={this.state.id} {...videoPreviewOptions} />
       </div>
     );
   }
