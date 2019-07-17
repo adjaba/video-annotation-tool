@@ -18,20 +18,19 @@ export default class VideoPreview extends Component {
       this.props.name.slice(1)
   };
 
-  componentDidUpdate() {
-    if (this.props.src) {
-      videojs(this.state.id).src(this.props.src);
-    }
-  }
+  handleChange = event => {
+    var player = videojs.getPlayer(this.state.id);
+    player.src(this.props.src);
+    this.setState({
+      time: parseInt(event.target.value)
+    });
+    player.currentTime(frameToSecs(event.target.value, 29.97));
+  };
 
-  handleChange(e) {
-    // this.setState({
-    //   time: parseInt(e.target.value),
-    // })
-    // var player = videojs(this.state.id);
-    // console.log(parseInt(e.target.value));
-    // player.currentTime(parseInt(e.target.value));
-  }
+  // componentWillReceiveProps(nextProps){
+  //     this.setState({time: nextProps.time})
+  // }
+
   render() {
     return (
       <div
@@ -49,6 +48,7 @@ export default class VideoPreview extends Component {
             this.handleChange(e);
             this.props.onChange(e);
           }}
+          value={this.state.time}
           key={this.props.inputKey}
         ></input>
         <VideoPlayer id={this.state.id} {...videoPreviewOptions} />
