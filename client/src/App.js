@@ -6,9 +6,11 @@ import "video.js/dist/video-js.css";
 import videojs from "video.js";
 import Event from "./Event";
 import VideoPreview from "./VideoPreview";
-import { frameToSecs, secsToFrame } from "./utils";
+import { frameToSecs, secsToFrame, scenes } from "./utils";
+import Sortable from "react-sortablejs";
+import ScenesActions from "./ScenesActions";
 
-import { Header, Form, Button, Icon, List } from "semantic-ui-react";
+import { Header, Form, Button, Icon, List, Grid } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
 // (function localFileVideoPlayer() {
@@ -194,13 +196,6 @@ class App extends Component {
     }
 
     myPlayer.play();
-
-    // var screenStart = videojs.getPlayer("videoJSStart");
-    // screenStart.currentTime(start);
-
-    // var screenEnd = videojs.getPlayer("videoJSEnd");
-    // console.log('test videopreview, ' + screenEnd)
-    // screenEnd.currentTime(end);
   }
   // async handleFilesSubmit(e) {
   //   console.log(e);
@@ -316,7 +311,70 @@ class App extends Component {
           />
           {/* below this.state.video should be a prop passed on from project page or maybe not*/}
           <VideoPlayer id="videoJS" {...videoJsOptions} />
-
+          {/* <Grid stackable columns = {2}>
+            <Grid.Column> */}
+          {/* <div style = {{
+              display: 'flex',
+              flex: 1,
+              flexDirection: 'column',
+              height: '100%'
+            }}>
+              <div
+                style={{
+                  display: "flex",
+                  flex: "1 1 0",
+                  flexDirection: "row",
+                  height: "100%",
+                  backgroundColor: "#ddd",
+                  alignItems: "center",
+                  justifyContent: "space-around",
+                }}
+              >
+                <VideoPreview
+                  name="start"
+                  frame={this.state.segmentStart || 0}
+                  inputKey={this.state.segmentIndex + "start"}
+                  onChange={this.videoPreviewChange}
+                  fps={this.state.metadata["fps"]}
+                  src={this.state.videoSrc}
+                  end={this.state.videoEnd}
+                />
+                <VideoPreview
+                  name="end"
+                  frame={this.state.segmentEnd || this.state.videoEnd}
+                  inputKey={this.state.segmentIndex + "end"}
+                  onChange={this.videoPreviewChange}
+                  fps={this.state.metadata["fps"]}
+                  src={this.state.videoSrc}
+                  end={this.state.videoEnd}
+                />
+                </div>
+                <div
+                style={{
+                  display: "flex",
+                  flex: "1 1 0",
+                  flexDirection: "row",
+                  height: "100%",
+                  backgroundColor: "#ddd",
+                  alignItems: "center",
+                  justifyContent: "space-around"
+                }}
+              >
+                <Button
+                  content="Play section"
+                  icon="play"
+                  labelPosition="left"
+                  onClick={this.playSection}
+                />
+                <Button icon labelPosition="right">
+                  <Icon name="save" />
+                  Save
+                </Button>
+                </div>
+            </div> */}
+          {/* </Grid.Column>
+            <Grid.Column> */}
+          {/* <List> */}
           <div
             style={{
               display: "flex",
@@ -328,57 +386,42 @@ class App extends Component {
               justifyContent: "space-around"
             }}
           >
-            {/* <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: 5
-              }}
-            >
-              <input type="number" id="start" onChange={this.jumpTo}></input>
-              <VideoPlayer id="videoJSStart" {...videoPreviewOptions} />
-            </div> */}
-            <VideoPreview
-              name="start"
-              frame={this.state.segmentStart || 0}
-              inputKey={this.state.segmentIndex + "start"}
-              onChange={this.videoPreviewChange}
-              fps={this.state.metadata["fps"]}
-              src={this.state.videoSrc}
-              end={this.state.videoEnd}
-            />
-            <VideoPreview
-              name="end"
-              frame={this.state.segmentEnd || this.state.videoEnd}
-              inputKey={this.state.segmentIndex + "end"}
-              onChange={this.videoPreviewChange}
-              fps={this.state.metadata["fps"]}
-              src={this.state.videoSrc}
-              end={this.state.videoEnd}
-            />
-            {/* <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: 5
-              }}
-            >
-              <input type="number" id="end" default={this.state.segmentEnd} disabled= {!this.state.segmentEnd} onChange={this.jumpTo}></input>
-              <VideoPlayer id="videoJSEnd" {...videoPreviewOptions} />
-            </div> */}
-            <Button
-              content="Play section"
-              icon="play"
-              labelPosition="left"
-              onClick={this.playSection}
-            />
-            <Button icon labelPosition="right">
-              <Icon name="save" />
-              Save
-            </Button>
+            {/* <div className = 'col-sm-6'>
+                <Sortable options = {{
+                    animation: 150,
+                    sort: true,
+                    group: {
+                      name:'clone1',
+                      pull: false,
+                      put: true
+                    }
+                  }}
+                  className='block-list'
+                  tag="ul"
+                />
+              </div>
+              <div className = 'col-sm-6'>
+                <Sortable options={{
+                  animation: 150, 
+                  sort: false, 
+                  group:{
+                    name:'clone1', 
+                    pull: 'clone',
+                    put: false,
+                    }
+                  }}
+                  className='block-list'
+                  tag='ul'
+                >
+                  {Object.keys(scenes).map((val, key) => (<li key={key} data-id={val}>{val}</li>))}
+                </Sortable>
+                </div> */}
+            <ScenesActions mode="scenes" />
           </div>
+          {/* </List> */}
+
+          {/* </Grid.Column>
+          </Grid> */}
         </div>
       </div>
     );

@@ -31,3 +31,48 @@
     transform: rotate(360deg);
   }
 }
+
+/* from react-sortablejs */
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.block-list {
+  padding: 20px 0;
+  max-width: 360px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  min-width: max-content;
+}
+
+.block-list > * {
+  padding: 10px 10px;
+}
+
+.block-list > *:first-child {
+  border-top: 1px solid #eee;
+}
+
+.block-list > * {
+  border-bottom: 1px solid #eee;
+}
+
+.block-list > *:hover {
+  cursor: move;
+}
+
+/* from bootstrap */
+.col-sm-6 {
+  position: relative;
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+.deletecursor:hover {
+  cursor: default;
+}

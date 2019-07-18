@@ -7734,7 +7734,7 @@ prompts@^2.0.1:
     kleur "^3.0.2"
     sisteransi "^1.0.0"
 
-prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@>=15.0.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -8024,6 +8024,13 @@ react-scripts@3.0.1:
     workbox-webpack-plugin "4.2.0"
   optionalDependencies:
     fsevents "2.0.6"
+
+react-sortablejs@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/react-sortablejs/-/react-sortablejs-1.5.1.tgz#ba05a554548cf9733cc2d5411ece9b97f911b63e"
+  integrity sha512-bKIc1UVhjZt55Nb6WZFxZ8Jwyngg8CTt+w+iG1pA5k9LQsg1J0X6nLppHatSSDZDECtRZKp2z47tmmhPRJNj4g==
+  dependencies:
+    prop-types ">=15.0.0"
 
 react@^16.8.6:
   version "16.8.6"
@@ -8749,6 +8756,11 @@ sockjs@0.3.19:
   dependencies:
     faye-websocket "^0.10.0"
     uuid "^3.0.1"
+
+sortablejs@1.6.1:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.6.1.tgz#d120d103fbb9f60c7db27814a1384072e6c6e083"
+  integrity sha1-0SDRA/u59gx9sngUoThAcubG4IM=
 
 source-list-map@^2.0.0:
   version "2.0.1"
