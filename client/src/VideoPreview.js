@@ -10,22 +10,24 @@ var videoPreviewOptions = {
 };
 
 export default class VideoPreview extends Component {
-  state = {
-    frame: 0,
-    id:
-      "videoJS" +
-      this.props.name.charAt(0).toUpperCase() +
-      this.props.name.slice(1)
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      frame: this.props.frame,
+      id:
+        "videoJS" +
+        this.props.name.charAt(0).toUpperCase() +
+        this.props.name.slice(1)
+    };
+  }
 
-  shouldComponentUpdate(nextProps) {
-    if (this.props.src != nextProps["src"]) {
-      var player = videojs.getPlayer(this.state.id);
-      player.src(nextProps["src"]);
-      player.currentTime(frameToSecs(this.state.frame, 29.97));
-      return true;
+  componentDidMount() {
+    if (this.props.src) {
+      videojs(this.state.id).src(this.props.src);
+      videojs(this.state.id).currentTime(
+        frameToSecs(this.state.frame, this.props.fps)
+      );
     }
-    return true;
   }
 
   handleChange = event => {
@@ -37,13 +39,8 @@ export default class VideoPreview extends Component {
     player.currentTime(frameToSecs(event.target.value, 29.97));
   };
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({ frame: nextProps.frame });
-    var player = videojs.getPlayer(this.state.id);
-    player.currentTime(frameToSecs(nextProps.frame, 29.97));
-  }
   componentWillUnmount() {
-    console.log("unmounting videopreview");
+    console.log("unmounting videopreview", this.state.id);
   }
 
   render() {

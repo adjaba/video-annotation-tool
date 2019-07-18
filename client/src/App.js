@@ -313,65 +313,67 @@ class App extends Component {
           <VideoPlayer id="videoJS" {...videoJsOptions} />
           {/* <Grid stackable columns = {2}>
             <Grid.Column> */}
-          {/* <div style = {{
-              display: 'flex',
+          <div
+            style={{
+              display: "flex",
               flex: 1,
-              flexDirection: 'column',
-              height: '100%'
-            }}>
-              <div
-                style={{
-                  display: "flex",
-                  flex: "1 1 0",
-                  flexDirection: "row",
-                  height: "100%",
-                  backgroundColor: "#ddd",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                }}
-              >
-                <VideoPreview
-                  name="start"
-                  frame={this.state.segmentStart || 0}
-                  inputKey={this.state.segmentIndex + "start"}
-                  onChange={this.videoPreviewChange}
-                  fps={this.state.metadata["fps"]}
-                  src={this.state.videoSrc}
-                  end={this.state.videoEnd}
-                />
-                <VideoPreview
-                  name="end"
-                  frame={this.state.segmentEnd || this.state.videoEnd}
-                  inputKey={this.state.segmentIndex + "end"}
-                  onChange={this.videoPreviewChange}
-                  fps={this.state.metadata["fps"]}
-                  src={this.state.videoSrc}
-                  end={this.state.videoEnd}
-                />
-                </div>
-                <div
-                style={{
-                  display: "flex",
-                  flex: "1 1 0",
-                  flexDirection: "row",
-                  height: "100%",
-                  backgroundColor: "#ddd",
-                  alignItems: "center",
-                  justifyContent: "space-around"
-                }}
-              >
-                <Button
-                  content="Play section"
-                  icon="play"
-                  labelPosition="left"
-                  onClick={this.playSection}
-                />
-                <Button icon labelPosition="right">
-                  <Icon name="save" />
-                  Save
-                </Button>
-                </div>
-            </div> */}
+              flexDirection: "column",
+              height: "100%"
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flex: "1 1 0",
+                flexDirection: "row",
+                height: "100%",
+                backgroundColor: "#ddd",
+                alignItems: "center",
+                justifyContent: "space-around"
+              }}
+            >
+              <VideoPreview
+                key={this.state.segmentIndex + "start"}
+                name="start"
+                frame={this.state.segmentStart || 0}
+                onChange={this.videoPreviewChange}
+                fps={this.state.metadata["fps"]}
+                src={this.state.videoSrc}
+                end={this.state.videoEnd}
+              />
+              <VideoPreview
+                key={this.state.segmentIndex + "end"}
+                name="end"
+                frame={this.state.segmentEnd || this.state.videoEnd}
+                onChange={this.videoPreviewChange}
+                fps={this.state.metadata["fps"]}
+                src={this.state.videoSrc}
+                end={this.state.videoEnd}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flex: "1 1 0",
+                flexDirection: "row",
+                height: "100%",
+                backgroundColor: "#ddd",
+                alignItems: "center",
+                justifyContent: "space-around"
+              }}
+            >
+              <Button
+                content="Play section"
+                icon="play"
+                labelPosition="left"
+                onClick={this.playSection}
+              />
+              <Button icon labelPosition="right">
+                <Icon name="save" />
+                Save
+              </Button>
+            </div>
+          </div>
           {/* </Grid.Column>
             <Grid.Column> */}
           {/* <List> */}
@@ -386,37 +388,7 @@ class App extends Component {
               justifyContent: "space-around"
             }}
           >
-            {/* <div className = 'col-sm-6'>
-                <Sortable options = {{
-                    animation: 150,
-                    sort: true,
-                    group: {
-                      name:'clone1',
-                      pull: false,
-                      put: true
-                    }
-                  }}
-                  className='block-list'
-                  tag="ul"
-                />
-              </div>
-              <div className = 'col-sm-6'>
-                <Sortable options={{
-                  animation: 150, 
-                  sort: false, 
-                  group:{
-                    name:'clone1', 
-                    pull: 'clone',
-                    put: false,
-                    }
-                  }}
-                  className='block-list'
-                  tag='ul'
-                >
-                  {Object.keys(scenes).map((val, key) => (<li key={key} data-id={val}>{val}</li>))}
-                </Sortable>
-                </div> */}
-            <ScenesActions
+            {/* <ScenesActions
               key={this.state.segmentIndex}
               mode="scenes"
               items={
@@ -426,7 +398,7 @@ class App extends Component {
                     ]["labelScene"]
                   : []
               }
-            />
+            /> */}
           </div>
           {/* </List> */}
 
