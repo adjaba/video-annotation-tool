@@ -47,3 +47,7 @@ export const actions = {
 export function frameToSecs(frame, fps) {
   return Math.floor(frame / fps) + parseInt(frame % fps) / fps;
 }
+
+export function secsToFrame(secs, fps) {
+  return Math.floor(secs * fps);
+}

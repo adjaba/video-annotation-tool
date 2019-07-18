@@ -6,7 +6,7 @@ import "video.js/dist/video-js.css";
 import videojs from "video.js";
 import Event from "./Event";
 import VideoPreview from "./VideoPreview";
-import { frameToSecs } from "./utils";
+import { frameToSecs, secsToFrame } from "./utils";
 
 import { Header, Form, Button, Icon, List } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
@@ -65,7 +65,8 @@ class App extends Component {
       metadata: Object(),
       segmentStart: null,
       segmentEnd: null,
-      segmentIndex: 0
+      segmentIndex: 0,
+      videoEnd: 0
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
@@ -83,8 +84,10 @@ class App extends Component {
       if (Object.keys(this.state.json).indexOf(this.state.videoName) >= 0) {
         this.setState({
           metadata: this.state.json[this.state.videoName],
-          segmentStart: 0,
-          segmentEnd: videojs.getPlayer("videoJS").duration()
+          videoEnd: secsToFrame(
+            videojs.getPlayer("videoJS").duration(),
+            this.state.json[this.state.videoName]["fps"]
+          )
         });
       } else {
         alert("Upload a video with the correct filename.");
@@ -169,6 +172,7 @@ class App extends Component {
   }
 
   jumpTo() {
+    console.log("here");
     var myPlayer = videojs.getPlayer("videoJS");
     var startInput = parseInt(document.getElementById("start").value);
     var endInput = parseInt(document.getElementById("end").value);
@@ -191,12 +195,12 @@ class App extends Component {
 
     myPlayer.play();
 
-    var screenStart = videojs.getPlayer("videoJSStart");
-    screenStart.currentTime(start);
+    // var screenStart = videojs.getPlayer("videoJSStart");
+    // screenStart.currentTime(start);
 
-    var screenEnd = videojs.getPlayer("videoJSEnd");
-    console.log("test videopreview, " + screenEnd);
-    screenEnd.currentTime(end);
+    // var screenEnd = videojs.getPlayer("videoJSEnd");
+    // console.log('test videopreview, ' + screenEnd)
+    // screenEnd.currentTime(end);
   }
   // async handleFilesSubmit(e) {
   //   console.log(e);
@@ -223,9 +227,9 @@ class App extends Component {
   //   // form.reset();
   // }
   videoPreviewChange(e) {
-    this.setState({
-      segmentEnd: parseInt(e.target.value)
-    });
+    // this.setState({
+    //   segmentEnd: parseInt(e.target.value)
+    // });
   }
 
   renderEvents() {
@@ -324,7 +328,7 @@ class App extends Component {
               justifyContent: "space-around"
             }}
           >
-            <div
+            {/* <div
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -334,15 +338,24 @@ class App extends Component {
             >
               <input type="number" id="start" onChange={this.jumpTo}></input>
               <VideoPlayer id="videoJSStart" {...videoPreviewOptions} />
-            </div>
-            {/* <VideoPreview name="start" time={this.state.segmentStart} key={this.state.segmentIndex+"start"} onChange={this.videoPreviewChange} fps= {this.state.metadata['fps']} src = {this.state.videoSrc}/> */}
+            </div> */}
+            <VideoPreview
+              name="start"
+              frame={this.state.segmentStart || 0}
+              inputKey={this.state.segmentIndex + "start"}
+              onChange={this.videoPreviewChange}
+              fps={this.state.metadata["fps"]}
+              src={this.state.videoSrc}
+              end={this.state.videoEnd}
+            />
             <VideoPreview
               name="end"
-              time={this.state.segmentEnd}
+              frame={this.state.segmentEnd || this.state.videoEnd}
               inputKey={this.state.segmentIndex + "end"}
               onChange={this.videoPreviewChange}
               fps={this.state.metadata["fps"]}
               src={this.state.videoSrc}
+              end={this.state.videoEnd}
             />
             {/* <div
               style={{

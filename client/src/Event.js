@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { events, scenes, actions } from "./utils";
-import { Header, List, Button } from "semantic-ui-react";
+import { Header, List, Button, Label } from "semantic-ui-react";
 
 export default class Event extends Component {
   constructor(props) {
@@ -22,27 +22,30 @@ export default class Event extends Component {
     } = this.props;
 
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          padding: "1em 0.5em",
-          borderRight: "1px solid #ccc",
-          height: "100%",
-          ...style
-        }}
-        onClick={onClick}
-      >
-        <Header size="small" style={{ flex: "0 0 auto" }}>
-          {index}
-        </Header>
-        Segment is {segment} . labelEvent {labelEvent} . numberOfActions{" "}
-        {numberOfActions} . labelActionIndex {labelActionIndex} . numberOfScenes{" "}
-        {numberOfScenes} . labelScenes {labelScenes} .
-        {/* <List divided selection style = {{ flex: 1, overflowY: 'auto'}}>
+      <List.Item>
+        <div
+          style={{
+            flex: 1,
+            padding: "5px",
+            fontSize: "1.3em",
+            ...style
+          }}
+          onClick={onClick}
+        >
+          <Header size="small" style={{ flex: "0 0 auto" }}>
+            <Label color="red" circular>
+              {index}
+            </Label>
+          </Header>
+          {labelEvent}
+          Segment is {segment} . labelEvent {labelEvent} . numberOfActions{" "}
+          {numberOfActions} . labelActionIndex {labelActionIndex} .
+          numberOfScenes {numberOfScenes} . labelScenes {labelScenes} .
+          {/* <List divided selection style = {{ flex: 1, overflowY: 'auto'}}>
 
-                </List> */}
-      </div>
+                  </List> */}
+        </div>
+      </List.Item>
     );
   }
 }
