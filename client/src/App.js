@@ -117,11 +117,11 @@ class App extends Component {
       type: file.type
     });
 
-    const playerStart = videojs.getPlayer("videoJSStart");
-    playerStart.src({
-      src: fileURL,
-      type: file.type
-    });
+    // const playerStart = videojs.getPlayer("videoJSStart");
+    // playerStart.src({
+    //   src: fileURL,
+    //   type: file.type
+    // });
     this.setState({
       videoName: file.name.substring(0, file.name.lastIndexOf(".")),
       videoSrc: {
@@ -416,7 +416,17 @@ class App extends Component {
                   {Object.keys(scenes).map((val, key) => (<li key={key} data-id={val}>{val}</li>))}
                 </Sortable>
                 </div> */}
-            <ScenesActions mode="scenes" />
+            <ScenesActions
+              key={this.state.segmentIndex}
+              mode="scenes"
+              items={
+                this.state.segmentIndex > 0
+                  ? this.state.metadata["annotations"][
+                      this.state.segmentIndex - 1
+                    ]["labelScene"]
+                  : []
+              }
+            />
           </div>
           {/* </List> */}
 

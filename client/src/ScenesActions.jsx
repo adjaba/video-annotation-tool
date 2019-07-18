@@ -5,9 +5,15 @@ import { Icon } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
 export default class ScenesActions extends React.Component {
-  state = {
-    items: []
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      items: this.props.items.map(item => item.toLowerCase())
+    };
+  }
+  // state = {
+  //   items: []
+  // };
 
   render() {
     var pool =
