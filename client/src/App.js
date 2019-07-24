@@ -6,12 +6,24 @@ import "video.js/dist/video-js.css";
 import videojs from "video.js";
 import Event from "./Event";
 import VideoPreview from "./VideoPreview";
-import { frameToSecs, secsToFrame, scenes } from "./utils";
+import { frameToSecs, secsToFrame, scenes, events } from "./utils";
 import Sortable from "react-sortablejs";
 import ScenesActions from "./ScenesActions";
 
-import { Header, Form, Button, Icon, List, Grid } from "semantic-ui-react";
+import {
+  Header,
+  Form,
+  Button,
+  Icon,
+  List,
+  Grid,
+  Dimmer,
+  Segment,
+  Dropdown
+} from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
+
+import uniqueId from "lodash/uniqueId";
 
 // (function localFileVideoPlayer() {
 // 	'use strict'
@@ -67,8 +79,9 @@ class App extends Component {
       metadata: Object(),
       segmentStart: null,
       segmentEnd: null,
-      segmentIndex: 0,
-      videoEnd: 0
+      segmentIndex: null,
+      videoEnd: 0,
+      visibleMenu: true
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
@@ -89,7 +102,8 @@ class App extends Component {
           videoEnd: secsToFrame(
             videojs.getPlayer("videoJS").duration(),
             this.state.json[this.state.videoName]["fps"]
-          )
+          ),
+          segmentIndex: this.state.segmentIndex
         });
       } else {
         alert("Upload a video with the correct filename.");
@@ -100,6 +114,23 @@ class App extends Component {
   // on video upload
   playSelectedFile(event) {
     var file = event.target.files[0];
+
+    if (!file) {
+      this.setState({
+        videoName: null,
+        videoSrc: null,
+        segmentIndex: null
+      });
+      return;
+    }
+
+    var segmentIndex = 0;
+    // if input changed but there was a previous videoSrc
+    // TODO: generate unique segmentIndex per new upload of video, just to reset videopreview and list
+    if (this.state.videoSrc) {
+      // segmentIndex = this.state.segmentIndex + '0';
+    }
+
     const player = videojs.getPlayer("videoJS");
 
     if (player.canPlayType(file.type) === "") {
@@ -129,7 +160,7 @@ class App extends Component {
         type: file.type
       }
     });
-    console.log(videojs.getPlayer("videoJSEnd"));
+    // console.log(videojs.getPlayer("videoJSEnd"));
   }
 
   parseJSONInput(event) {
@@ -238,7 +269,7 @@ class App extends Component {
               this.setState({
                 segmentStart: prop["segment"][0],
                 segmentEnd: prop["segment"][1],
-                segmentIndex: prop["segmentIndex"] + 1
+                segmentIndex: prop["segmentIndex"]
               })
             }
           />
@@ -250,21 +281,39 @@ class App extends Component {
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <div
           style={{
-            display: "flex",
             flexDirection: "column",
-            padding: "1em 0.5em",
+            padding: "1em",
             borderRight: "1px solid #ccc",
             height: "100%",
             flex: 1,
-            maxWidth: 300
+            maxWidth: 300,
+            backgroundColor: "#fff",
+            minWidth: "max-content"
           }}
+          hidden={!this.state.visibleMenu}
         >
           <Header size="large" style={{ flex: "0 0 auto" }}>
             Events
+            <Icon
+              size="small"
+              name="close"
+              style={{ float: "right", marginRight: 0 }}
+              onClick={() => this.setState({ visibleMenu: false })}
+            />
           </Header>
           <List divided selection style={{ flex: 1, overflowY: "auto" }}>
             {this.renderEvents()}
           </List>
+        </div>
+        <div
+          hidden={this.state.visibleMenu}
+          style={{ height: "auto", margin: "1em" }}
+        >
+          <Icon
+            size="large"
+            name="bars"
+            onClick={() => this.setState({ visibleMenu: true })}
+          />
         </div>
         <div
           style={{
@@ -274,7 +323,8 @@ class App extends Component {
             height: "100%",
             backgroundColor: "#ddd",
             alignItems: "center",
-            justifyContent: "space-around"
+            justifyContent: "space-between"
+            // overflowX: "auto"
           }}
         >
           {/* <Form
@@ -292,114 +342,184 @@ class App extends Component {
           />
           <Button type="submit">Upload</Button>
         </Form> */}
-          <input
-            id="input_video"
-            type="file"
-            accept="video/*"
-            onChange={e => {
-              // this.setState({ video: e.target.value });
-              this.playSelectedFile(e);
-            }}
-          />
-          <input
-            id="input_json"
-            type="file"
-            accept=".json, application/json"
-            onChange={e => {
-              this.parseJSONInput(e);
-            }}
-          />
-          {/* below this.state.video should be a prop passed on from project page or maybe not*/}
-          <VideoPlayer id="videoJS" {...videoJsOptions} />
+          <div style={{ display: "block", flex: "0 0 auto" }}>
+            <input
+              id="input_video"
+              type="file"
+              accept="video/*"
+              onChange={e => {
+                // this.setState({ video: e.target.value });
+                this.playSelectedFile(e);
+              }}
+            />
+            <input
+              id="input_json"
+              type="file"
+              accept=".json, application/json"
+              onChange={e => {
+                this.parseJSONInput(e);
+              }}
+            />
+            {/* below this.state.video should be a prop passed on from project page or maybe not*/}
+            <VideoPlayer id="videoJS" {...videoJsOptions} />
+          </div>
           {/* <Grid stackable columns = {2}>
             <Grid.Column> */}
+          {/* <Dimmer.Dimmable as={Segment} dimm  */}
           <div
             style={{
               display: "flex",
-              flex: 1,
               flexDirection: "column",
-              height: "100%"
+              width: "100%",
+              backgroundColor: "#fff"
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                flex: "1 1 0",
-                flexDirection: "row",
-                height: "100%",
-                backgroundColor: "#ddd",
-                alignItems: "center",
-                justifyContent: "space-around"
-              }}
-            >
-              <VideoPreview
-                key={this.state.segmentIndex + "start"}
-                name="start"
-                frame={this.state.segmentStart || 0}
-                onChange={this.videoPreviewChange}
-                fps={this.state.metadata["fps"]}
-                src={this.state.videoSrc}
-                end={this.state.videoEnd}
-              />
-              <VideoPreview
-                key={this.state.segmentIndex + "end"}
-                name="end"
-                frame={this.state.segmentEnd || this.state.videoEnd}
-                onChange={this.videoPreviewChange}
-                fps={this.state.metadata["fps"]}
-                src={this.state.videoSrc}
-                end={this.state.videoEnd}
-              />
+            <div style={{ display: "block" }}>
+              <Header size="large" style={{ padding: "5px 10px" }}>
+                Event {this.state.segmentIndex}
+              </Header>
             </div>
             <div
               style={{
                 display: "flex",
-                flex: "1 1 0",
-                flexDirection: "row",
-                height: "100%",
-                backgroundColor: "#ddd",
-                alignItems: "center",
-                justifyContent: "space-around"
+                flex: 1,
+                flexDirection: "row"
               }}
             >
-              <Button
-                content="Play section"
-                icon="play"
-                labelPosition="left"
-                onClick={this.playSection}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column"
+                }}
+              >
+                <div style={{ display: "block", padding: "5px 10px" }}>
+                  <b>Type: </b>
+                  <Dropdown
+                    key={this.state.segmentIndex}
+                    search
+                    selection
+                    options={Object.keys(events).map(event =>
+                      Object({
+                        key: events[event],
+                        text: event,
+                        value: events[event]
+                      })
+                    )}
+                    defaultValue={
+                      this.state.segmentIndex > 0 ||
+                      this.state.segmentIndex === 0
+                        ? this.state.metadata["annotations"][
+                            this.state.segmentIndex
+                          ]["labelEventIdx"]
+                        : null
+                    }
+                  ></Dropdown>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flex: 0,
+                    flexDirection: "row",
+                    height: "100%",
+                    alignItems: "center",
+                    justifyContent: "space-around"
+                  }}
+                >
+                  <VideoPreview
+                    key={this.state.segmentIndex + "start"}
+                    name="start"
+                    frame={this.state.segmentStart || 0}
+                    onChange={this.videoPreviewChange}
+                    fps={this.state.metadata["fps"]}
+                    src={this.state.videoSrc}
+                    end={this.state.videoEnd}
+                  />
+                  <VideoPreview
+                    key={this.state.segmentIndex + "end"}
+                    name="end"
+                    frame={this.state.segmentEnd || this.state.videoEnd}
+                    onChange={this.videoPreviewChange}
+                    fps={this.state.metadata["fps"]}
+                    src={this.state.videoSrc}
+                    end={this.state.videoEnd}
+                  />
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flex: 0,
+                    flexDirection: "row",
+                    height: "100%",
+                    alignItems: "center",
+                    justifyContent: "space-around"
+                  }}
+                >
+                  <Button
+                    content="Play section"
+                    icon="play"
+                    labelPosition="left"
+                    onClick={this.playSection}
+                  />
+                  <Button icon labelPosition="right">
+                    <Icon name="save" />
+                    Save
+                  </Button>
+                </div>
+              </div>
+              {/* <div
+                style={{
+                  display: "flex",
+                  flex: "1 1 0",
+                  flexDirection: "row",
+                  height: "100%",
+                  width: '100%',
+                  backgroundColor: "#F0E68C",
+                  alignItems: "center",
+                  justifyContent: "space-around"
+                }}
+              > */}
+              <ScenesActions
+                key={this.state.segmentIndex + "scenes"}
+                mode="scenes"
+                items={
+                  this.state.segmentIndex > 0 || this.state.segmentIndex === 0
+                    ? this.state.metadata["annotations"][
+                        this.state.segmentIndex
+                      ]["labelScene"]
+                    : []
+                }
               />
-              <Button icon labelPosition="right">
-                <Icon name="save" />
-                Save
-              </Button>
+              {/* </div> */}
+              {/* <div
+                  style={{
+                    display: "flex",
+                    flex: "1 1 0",
+                    flexDirection: "row",
+                    height: "100%",
+                    width: '100%',
+                    backgroundColor: "#F0E68C",
+                    alignItems: "center",
+                    justifyContent: "space-around"
+                  }}
+                > */}
+              <ScenesActions
+                key={this.state.segmentIndex + "actions"}
+                mode="actions"
+                items={
+                  this.state.segmentIndex > 0 || this.state.segmentIndex === 0
+                    ? this.state.metadata["annotations"][
+                        this.state.segmentIndex
+                      ]["labelAction"]
+                    : []
+                }
+              />
+              {/* </div> */}
             </div>
           </div>
           {/* </Grid.Column>
             <Grid.Column> */}
           {/* <List> */}
-          <div
-            style={{
-              display: "flex",
-              flex: "1 1 0",
-              flexDirection: "row",
-              height: "100%",
-              backgroundColor: "#ddd",
-              alignItems: "center",
-              justifyContent: "space-around"
-            }}
-          >
-            {/* <ScenesActions
-              key={this.state.segmentIndex}
-              mode="scenes"
-              items={
-                this.state.segmentIndex > 0
-                  ? this.state.metadata["annotations"][
-                      this.state.segmentIndex - 1
-                    ]["labelScene"]
-                  : []
-              }
-            /> */}
-          </div>
+
           {/* </List> */}
 
           {/* </Grid.Column>

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Sortable from "react-sortablejs";
 import { scenes, actions } from "./utils";
-import { Icon } from "semantic-ui-react";
+import { Icon, Header } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
 export default class ScenesActions extends React.Component {
@@ -27,9 +27,22 @@ export default class ScenesActions extends React.Component {
         {val}
       </li>
     ));
+
+    // var width = this.props.mode === ""
     return (
-      <div style={{ display: "flex", flexDirection: "row" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          width: "100%",
+          overflowY: "auto",
+          padding: "5px"
+        }}
+      >
         <div className="col-sm-6">
+          <Header size="small">
+            {this.props.mode.charAt(0).toUpperCase() + this.props.mode.slice(1)}
+          </Header>
           <Sortable
             options={{
               animation: 150,

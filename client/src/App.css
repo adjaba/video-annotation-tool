@@ -42,8 +42,8 @@ ul {
 .block-list {
   padding: 20px 0;
   max-width: 360px;
-  background-color: #fff;
-  border: 1px solid #eee;
+  background-color: #eee;
+  border: 1px solid #ddd;
   min-width: max-content;
 }
 
@@ -52,11 +52,11 @@ ul {
 }
 
 .block-list > *:first-child {
-  border-top: 1px solid #eee;
+  border-top: 1px solid #ddd;
 }
 
 .block-list > * {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #ddd;
 }
 
 .block-list > *:hover {
