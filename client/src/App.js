@@ -106,8 +106,19 @@ class App extends Component {
           segmentIndex: this.state.segmentIndex
         });
       } else {
+        this.setState({
+          metadata: null,
+          videoEnd: null,
+          segmentIndex: null
+        });
         alert("Upload a video with the correct filename.");
       }
+    } else {
+      this.setState({
+        metadata: null,
+        videoEnd: null,
+        segmentIndex: null
+      });
     }
   }
 
@@ -402,7 +413,7 @@ class App extends Component {
                       Object({
                         key: events[event],
                         text: event,
-                        value: events[event]
+                        value: event
                       })
                     )}
                     defaultValue={
@@ -410,7 +421,7 @@ class App extends Component {
                       this.state.segmentIndex === 0
                         ? this.state.metadata["annotations"][
                             this.state.segmentIndex
-                          ]["labelEventIdx"]
+                          ]["labelEvent"]
                         : null
                     }
                   ></Dropdown>
