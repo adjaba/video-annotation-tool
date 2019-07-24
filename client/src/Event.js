@@ -38,7 +38,7 @@ export default class Event extends Component {
             </Label>
             {labelEvent}
           </Header>
-          Start: {segment[0]} End: {segment[1]}
+          Start Frame: {segment[0]} <br /> End Frame: {segment[1]}
           {/* Segment is {segment} . labelEvent {labelEvent} . numberOfActions{" "}
           {numberOfActions} . labelActionIndex {labelActionIndex} .
           numberOfScenes {numberOfScenes} . labelScenes {labelScenes} . */}

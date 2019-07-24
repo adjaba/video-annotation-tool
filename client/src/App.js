@@ -95,30 +95,37 @@ class App extends Component {
     const videoNameJSONUpdated =
       prevState["videoName"] !== this.state.videoName ||
       prevState["json"] !== this.state.json;
-    if (videoNameJSONUpdated && this.state.videoName && this.state.json) {
-      if (Object.keys(this.state.json).indexOf(this.state.videoName) >= 0) {
-        this.setState({
-          metadata: this.state.json[this.state.videoName],
-          videoEnd: secsToFrame(
-            videojs.getPlayer("videoJS").duration(),
-            this.state.json[this.state.videoName]["fps"]
-          ),
-          segmentIndex: this.state.segmentIndex
-        });
+    // if video or json updated
+    if (videoNameJSONUpdated) {
+      // if video and json exists
+      if (this.state.videoName && this.state.json) {
+        // if video and json match
+        if (Object.keys(this.state.json).indexOf(this.state.videoName) >= 0) {
+          this.setState({
+            metadata: this.state.json[this.state.videoName],
+            videoEnd: secsToFrame(
+              videojs.getPlayer("videoJS").duration(),
+              this.state.json[this.state.videoName]["fps"]
+            ),
+            segmentIndex: this.state.segmentIndex
+          });
+        } else {
+          this.setState({
+            metadata: Object(),
+            videoEnd: null,
+            segmentIndex: null
+          });
+          alert(
+            "Upload a video with the correct filename or upload the correct json file."
+          );
+        }
       } else {
         this.setState({
-          metadata: null,
+          metadata: Object(),
           videoEnd: null,
           segmentIndex: null
         });
-        alert("Upload a video with the correct filename.");
       }
-    } else {
-      this.setState({
-        metadata: null,
-        videoEnd: null,
-        segmentIndex: null
-      });
     }
   }
 
