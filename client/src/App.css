@@ -80,7 +80,7 @@ ul {
   cursor: default;
 }
 
-.container {
+/* .container {
   flex-wrap: wrap;
 }
 
@@ -99,4 +99,4 @@ ul {
   .container {
     display: flex;
   }
-}
+} */

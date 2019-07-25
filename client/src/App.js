@@ -468,18 +468,23 @@ class App extends Component {
                   flexDirection: "row"
                 }}> */}
               <div
-                className="container"
+                // className="container"
                 style={{
                   display: "flex",
                   flex: 1,
-                  flexDirection: "row"
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  alignItems: "center"
                 }}
               >
                 {/* <Grid.Column> */}
                 <div
                   style={{
                     display: "flex",
-                    flexDirection: "column"
+                    flexDirection: "column",
+                    flex: 1,
+                    width: "100%",
+                    paddingBottom: "5px"
                   }}
                 >
                   <div style={{ display: "block", padding: "5px 10px" }}>
@@ -572,32 +577,36 @@ class App extends Component {
                 </div>
                 {/* </Grid.Column>
                 <Grid.Column> */}
-                <ScenesActions
-                  key={this.state.segmentIndex + "scenes"}
-                  mode="scenes"
-                  items={
-                    this.state.segmentIndex > 0 || this.state.segmentIndex === 0
-                      ? this.state.metadata["annotations"][
-                          this.state.segmentIndex
-                        ]["labelScene"]
-                      : []
-                  }
-                  style={{ flex: 2 }}
-                />
-                {/* </Grid.Column>
+                <div style={{ display: "flex", flex: 1, flexDirection: "row" }}>
+                  <ScenesActions
+                    key={this.state.segmentIndex + "scenes"}
+                    mode="scenes"
+                    items={
+                      this.state.segmentIndex > 0 ||
+                      this.state.segmentIndex === 0
+                        ? this.state.metadata["annotations"][
+                            this.state.segmentIndex
+                          ]["labelScene"]
+                        : []
+                    }
+                    style={{ flex: 2 }}
+                  />
+                  {/* </Grid.Column>
                   <Grid.Column> */}
-                <ScenesActions
-                  key={this.state.segmentIndex + "actions"}
-                  mode="actions"
-                  items={
-                    this.state.segmentIndex > 0 || this.state.segmentIndex === 0
-                      ? this.state.metadata["annotations"][
-                          this.state.segmentIndex
-                        ]["labelAction"]
-                      : []
-                  }
-                  style={{ flex: 3 }}
-                />
+                  <ScenesActions
+                    key={this.state.segmentIndex + "actions"}
+                    mode="actions"
+                    items={
+                      this.state.segmentIndex > 0 ||
+                      this.state.segmentIndex === 0
+                        ? this.state.metadata["annotations"][
+                            this.state.segmentIndex
+                          ]["labelAction"]
+                        : []
+                    }
+                    style={{ flex: 3 }}
+                  />
+                </div>
                 {/* </Grid.Column> */}
                 {/* </div> */}
               </div>
