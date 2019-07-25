@@ -79,6 +79,7 @@ class App extends Component {
       json: null,
       metadata: Object(),
       segmentStart: null,
+      segmentEvent: null,
       segmentEnd: null,
       segmentIndex: null,
       videoEnd: 0,
@@ -261,7 +262,18 @@ class App extends Component {
     myPlayer.play();
   }
 
-  saveSegment() {}
+  saveSegment() {
+    var metadata = this.state.metadata;
+    metadata["annotations"][this.state.segmentIndex][
+      "labelEvent"
+    ] = this.state.segmentEvent;
+    metadata["annotations"][this.state.segmentIndex]["labelEventIdx"] =
+      events[this.state.segmentEvent];
+
+    this.setState({
+      metadata: metadata
+    });
+  }
   // async handleFilesSubmit(e) {
   //   console.log(e);
   //   console.log(e.target);
@@ -408,7 +420,8 @@ class App extends Component {
               display: "flex",
               flex: "0 0 auto",
               width: "100%",
-              flexDirection: "column"
+              flexDirection: "column",
+              alignItems: "center"
             }}
           >
             <input
@@ -449,13 +462,20 @@ class App extends Component {
                   Event {this.state.segmentIndex}
                 </Header>
               </div>
+              {/* <Grid columns = {3} divided style={{
+                  display: "flex",
+                  flex: 1,
+                  flexDirection: "row"
+                }}> */}
               <div
+                className="container"
                 style={{
                   display: "flex",
                   flex: 1,
                   flexDirection: "row"
                 }}
               >
+                {/* <Grid.Column> */}
                 <div
                   style={{
                     display: "flex",
@@ -468,6 +488,11 @@ class App extends Component {
                       key={this.state.segmentIndex}
                       search
                       selection
+                      onChange={(e, { value }) => {
+                        this.setState({
+                          segmentEvent: value
+                        });
+                      }}
                       options={Object.keys(events).map(event =>
                         Object({
                           key: events[event],
@@ -518,6 +543,7 @@ class App extends Component {
                       end={this.state.videoEnd}
                     />
                   </div>
+
                   <div
                     style={{
                       display: "flex",
@@ -544,18 +570,8 @@ class App extends Component {
                     </Button>
                   </div>
                 </div>
-                {/* <div
-                style={{
-                  display: "flex",
-                  flex: "1 1 0",
-                  flexDirection: "row",
-                  height: "100%",
-                  width: '100%',
-                  backgroundColor: "#F0E68C",
-                  alignItems: "center",
-                  justifyContent: "space-around"
-                }}
-              > */}
+                {/* </Grid.Column>
+                <Grid.Column> */}
                 <ScenesActions
                   key={this.state.segmentIndex + "scenes"}
                   mode="scenes"
@@ -568,19 +584,8 @@ class App extends Component {
                   }
                   style={{ flex: 2 }}
                 />
-                {/* </div> */}
-                {/* <div
-                  style={{
-                    display: "flex",
-                    flex: "1 1 0",
-                    flexDirection: "row",
-                    height: "100%",
-                    width: '100%',
-                    backgroundColor: "#F0E68C",
-                    alignItems: "center",
-                    justifyContent: "space-around"
-                  }}
-                > */}
+                {/* </Grid.Column>
+                  <Grid.Column> */}
                 <ScenesActions
                   key={this.state.segmentIndex + "actions"}
                   mode="actions"
@@ -593,8 +598,10 @@ class App extends Component {
                   }
                   style={{ flex: 3 }}
                 />
+                {/* </Grid.Column> */}
                 {/* </div> */}
               </div>
+              {/* </Grid> */}
             </Dimmer.Dimmable>
           </div>
 
