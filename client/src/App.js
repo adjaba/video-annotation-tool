@@ -421,7 +421,8 @@ class App extends Component {
               flex: "0 0 auto",
               width: "100%",
               flexDirection: "column",
-              alignItems: "center"
+              alignItems: "center",
+              flex: 1
             }}
           >
             <input
@@ -452,10 +453,16 @@ class App extends Component {
               flexDirection: "column",
               width: "100%",
               backgroundColor: "#fff",
-              overflowX: "auto"
+              overflowX: "auto",
+              flex: 1
             }}
           >
-            <Dimmer.Dimmable fluid blurring dimmed={active}>
+            <Dimmer.Dimmable
+              fluid
+              blurring
+              dimmed={active}
+              style={{ height: "100%" }}
+            >
               <Dimmer active={active} content={content} />
               <div style={{ display: "block" }}>
                 <Header size="large" style={{ padding: "5px 10px" }}>
