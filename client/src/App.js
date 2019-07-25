@@ -90,6 +90,7 @@ class App extends Component {
     // this.frameToSecs = this.frameToSecs.bind(this);
     this.playSection = this.playSection.bind(this);
     this.videoPreviewChange = this.videoPreviewChange.bind(this);
+    this.saveSegment = this.saveSegment.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -259,6 +260,8 @@ class App extends Component {
 
     myPlayer.play();
   }
+
+  saveSegment() {}
   // async handleFilesSubmit(e) {
   //   console.log(e);
   //   console.log(e.target);
@@ -400,7 +403,14 @@ class App extends Component {
           />
           <Button type="submit">Upload</Button>
         </Form> */}
-          <div style={{ display: "block", flex: "0 0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              flex: "0 0 auto",
+              width: "100%",
+              flexDirection: "column"
+            }}
+          >
             <input
               id="input_video"
               type="file"
@@ -428,7 +438,8 @@ class App extends Component {
               display: "flex",
               flexDirection: "column",
               width: "100%",
-              backgroundColor: "#fff"
+              backgroundColor: "#fff",
+              overflowX: "auto"
             }}
           >
             <Dimmer.Dimmable fluid blurring dimmed={active}>
@@ -523,7 +534,11 @@ class App extends Component {
                       labelPosition="left"
                       onClick={this.playSection}
                     />
-                    <Button icon labelPosition="right">
+                    <Button
+                      icon
+                      labelPosition="right"
+                      onClick={this.saveSegment}
+                    >
                       <Icon name="save" />
                       Save
                     </Button>
@@ -551,6 +566,7 @@ class App extends Component {
                         ]["labelScene"]
                       : []
                   }
+                  style={{ flex: 2 }}
                 />
                 {/* </div> */}
                 {/* <div
@@ -575,6 +591,7 @@ class App extends Component {
                         ]["labelAction"]
                       : []
                   }
+                  style={{ flex: 3 }}
                 />
                 {/* </div> */}
               </div>

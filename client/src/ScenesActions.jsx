@@ -31,12 +31,6 @@ export default class ScenesActions extends React.Component {
         ? Object.keys(actions)
         : null;
 
-    var flex =
-      this.props.mode === "scenes"
-        ? 1
-        : this.props.mode === "actions"
-        ? Object.keys(actions)
-        : 1.5;
     // var filteredPool = pool.filter((item) => {return item.toLowerCase().indexOf(this.state.query.toLowerCase()) >= 0});
     // var source = filteredPool.map((val, key) => (
     //   <li key={key} data-id={val}>
@@ -52,7 +46,8 @@ export default class ScenesActions extends React.Component {
           flexDirection: "row",
           width: "100%",
           padding: "5px",
-          flex: { flex }
+          minWidth: "max-content",
+          ...this.props.style
         }}
       >
         <div className="col-sm-6">
@@ -64,7 +59,7 @@ export default class ScenesActions extends React.Component {
               animation: 150,
               sort: true,
               group: {
-                name: "clone1",
+                name: "clone1" + this.props.mode,
                 pull: false,
                 put: true
               }
@@ -118,8 +113,8 @@ export default class ScenesActions extends React.Component {
                 animation: 150,
                 sort: false,
                 group: {
-                  name: "clone1",
-                  pull: "clone",
+                  name: "clone1" + this.props.mode,
+                  pull: "clone" + this.props.mode,
                   put: false
                 }
               }}

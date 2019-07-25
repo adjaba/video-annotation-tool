@@ -45,6 +45,9 @@ ul {
   background-color: #eee;
   border: 1px solid #ddd;
   min-width: max-content;
+  height: calc(100vh - 510);
+  max-height: 360px;
+  overflow-y: auto;
 }
 
 .block-list > * {
