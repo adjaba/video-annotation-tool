@@ -82,7 +82,7 @@ class App extends Component {
       segmentEnd: null,
       segmentIndex: null,
       videoEnd: 0,
-      visibleMenu: true
+      visibleMenu: false
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
@@ -108,7 +108,8 @@ class App extends Component {
               videojs.getPlayer("videoJS").duration(),
               this.state.json[this.state.videoName]["fps"]
             ),
-            segmentIndex: this.state.segmentIndex
+            segmentIndex: this.state.segmentIndex,
+            visibleMenu: true
           });
         } else {
           this.setState({
@@ -133,6 +134,7 @@ class App extends Component {
   // on video upload
   playSelectedFile(event) {
     var file = event.target.files[0];
+    const player = videojs.getPlayer("videoJS");
 
     if (!file) {
       this.setState({
@@ -142,6 +144,7 @@ class App extends Component {
         videoEnd: null,
         metadata: Object()
       });
+      player.reset();
       return;
     }
 
@@ -150,8 +153,6 @@ class App extends Component {
     // if (this.state.videoSrc) {
     //   // segmentIndex = this.state.segmentIndex + '0';
     // }
-
-    const player = videojs.getPlayer("videoJS");
 
     if (player.canPlayType(file.type) === "") {
       alert(
@@ -307,15 +308,26 @@ class App extends Component {
       : null;
   }
   render() {
-    const active =
-      !this.state.json ||
-      !this.state.videoName ||
-      !(this.state.segmentIndex > 0 || this.state.segmentIndex === 0);
-    const content = (
+    const ready = this.state.json && this.state.videoName;
+    const editReady =
+      this.state.segmentIndex > 0 || this.state.segmentIndex === 0;
+    const active = !ready || !editReady;
+    const content = !ready ? (
       <div>
         <Header as="h2" inverted>
-          Please complete uploading the video and json file or select an event
-          to the left.
+          Please complete uploading the video and json file.
+        </Header>
+      </div>
+    ) : !editReady ? (
+      <div>
+        <Header as="h2" inverted>
+          Click on an event on the sidebar to start editing.
+        </Header>
+      </div>
+    ) : (
+      <div>
+        <Header as="h2" inverted>
+          Something went wrong.
         </Header>
       </div>
     );

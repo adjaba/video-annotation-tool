@@ -31,6 +31,12 @@ export default class ScenesActions extends React.Component {
         ? Object.keys(actions)
         : null;
 
+    var flex =
+      this.props.mode === "scenes"
+        ? 1
+        : this.props.mode === "actions"
+        ? Object.keys(actions)
+        : 1.5;
     // var filteredPool = pool.filter((item) => {return item.toLowerCase().indexOf(this.state.query.toLowerCase()) >= 0});
     // var source = filteredPool.map((val, key) => (
     //   <li key={key} data-id={val}>
@@ -45,7 +51,8 @@ export default class ScenesActions extends React.Component {
           display: "flex",
           flexDirection: "row",
           width: "100%",
-          padding: "5px"
+          padding: "5px",
+          flex: { flex }
         }}
       >
         <div className="col-sm-6">
