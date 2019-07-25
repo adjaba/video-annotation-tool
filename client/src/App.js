@@ -24,6 +24,7 @@ import {
 import "semantic-ui-css/semantic.min.css";
 
 import uniqueId from "lodash/uniqueId";
+import { EventEmitter } from "events";
 
 // (function localFileVideoPlayer() {
 // 	'use strict'
@@ -137,17 +138,18 @@ class App extends Component {
       this.setState({
         videoName: null,
         videoSrc: null,
-        segmentIndex: null
+        segmentIndex: null,
+        videoEnd: null,
+        metadata: Object()
       });
       return;
     }
 
-    var segmentIndex = 0;
-    // if input changed but there was a previous videoSrc
-    // TODO: generate unique segmentIndex per new upload of video, just to reset videopreview and list
-    if (this.state.videoSrc) {
-      // segmentIndex = this.state.segmentIndex + '0';
-    }
+    // // if input changed but there was a previous videoSrc
+    // // TODO: generate unique segmentIndex per new upload of video, just to reset videopreview and list
+    // if (this.state.videoSrc) {
+    //   // segmentIndex = this.state.segmentIndex + '0';
+    // }
 
     const player = videojs.getPlayer("videoJS");
 
@@ -176,12 +178,20 @@ class App extends Component {
       videoSrc: {
         src: fileURL,
         type: file.type
-      }
+      },
+      segmentIndex: null
     });
     // console.log(videojs.getPlayer("videoJSEnd"));
   }
 
   parseJSONInput(event) {
+    console.log(event.target.files[0]);
+    if (!event.target.files[0]) {
+      // this.setState({
+      //   json: null
+      // });
+      return;
+    }
     var reader = new FileReader();
     reader.onload = event => {
       this.setState({
@@ -242,6 +252,8 @@ class App extends Component {
           myPlayer.off("timeupdate");
         }
       });
+    } else {
+      alert("Please set end frame to be bigger than start frame.");
     }
 
     myPlayer.play();
@@ -295,6 +307,18 @@ class App extends Component {
       : null;
   }
   render() {
+    const active =
+      !this.state.json ||
+      !this.state.videoName ||
+      !(this.state.segmentIndex > 0 || this.state.segmentIndex === 0);
+    const content = (
+      <div>
+        <Header as="h2" inverted>
+          Please complete uploading the video and json file or select an event
+          to the left.
+        </Header>
+      </div>
+    );
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <div
@@ -325,7 +349,11 @@ class App extends Component {
         </div>
         <div
           hidden={this.state.visibleMenu}
-          style={{ height: "auto", margin: "1em" }}
+          style={{
+            height: "auto",
+            padding: "1em",
+            borderRight: "1px solid #ccc"
+          }}
         >
           <Icon
             size="large"
@@ -336,7 +364,7 @@ class App extends Component {
         <div
           style={{
             display: "flex",
-            flex: "4 1 0",
+            flex: "8 1 0",
             flexDirection: "column",
             height: "100%",
             backgroundColor: "#ddd",
@@ -383,7 +411,6 @@ class App extends Component {
           </div>
           {/* <Grid stackable columns = {2}>
             <Grid.Column> */}
-          {/* <Dimmer.Dimmable as={Segment} dimm  */}
           <div
             style={{
               display: "flex",
@@ -392,99 +419,105 @@ class App extends Component {
               backgroundColor: "#fff"
             }}
           >
-            <div style={{ display: "block" }}>
-              <Header size="large" style={{ padding: "5px 10px" }}>
-                Event {this.state.segmentIndex}
-              </Header>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flex: 1,
-                flexDirection: "row"
-              }}
-            >
+            <Dimmer.Dimmable fluid blurring dimmed={active}>
+              <Dimmer active={active} content={content} />
+              <div style={{ display: "block" }}>
+                <Header size="large" style={{ padding: "5px 10px" }}>
+                  Event {this.state.segmentIndex}
+                </Header>
+              </div>
               <div
                 style={{
                   display: "flex",
-                  flexDirection: "column"
+                  flex: 1,
+                  flexDirection: "row"
                 }}
               >
-                <div style={{ display: "block", padding: "5px 10px" }}>
-                  <b>Type: </b>
-                  <Dropdown
-                    key={this.state.segmentIndex}
-                    search
-                    selection
-                    options={Object.keys(events).map(event =>
-                      Object({
-                        key: events[event],
-                        text: event,
-                        value: event
-                      })
-                    )}
-                    defaultValue={
-                      this.state.segmentIndex > 0 ||
-                      this.state.segmentIndex === 0
-                        ? this.state.metadata["annotations"][
-                            this.state.segmentIndex
-                          ]["labelEvent"]
-                        : null
-                    }
-                  ></Dropdown>
-                </div>
                 <div
                   style={{
                     display: "flex",
-                    flex: 0,
-                    flexDirection: "row",
-                    height: "100%",
-                    alignItems: "center",
-                    justifyContent: "space-around"
+                    flexDirection: "column"
                   }}
                 >
-                  <VideoPreview
-                    key={this.state.segmentIndex + "start"}
-                    name="start"
-                    frame={this.state.segmentStart || 0}
-                    onChange={this.videoPreviewChange}
-                    fps={this.state.metadata["fps"]}
-                    src={this.state.videoSrc}
-                    end={this.state.videoEnd}
-                  />
-                  <VideoPreview
-                    key={this.state.segmentIndex + "end"}
-                    name="end"
-                    frame={this.state.segmentEnd || this.state.videoEnd}
-                    onChange={this.videoPreviewChange}
-                    fps={this.state.metadata["fps"]}
-                    src={this.state.videoSrc}
-                    end={this.state.videoEnd}
-                  />
+                  <div style={{ display: "block", padding: "5px 10px" }}>
+                    <b>Type: </b>
+                    <Dropdown
+                      key={this.state.segmentIndex}
+                      search
+                      selection
+                      options={Object.keys(events).map(event =>
+                        Object({
+                          key: events[event],
+                          text: event,
+                          value: event
+                        })
+                      )}
+                      defaultValue={
+                        this.state.segmentIndex > 0 ||
+                        this.state.segmentIndex === 0
+                          ? this.state.metadata["annotations"][
+                              this.state.segmentIndex
+                            ]["labelEvent"]
+                          : null
+                      }
+                    ></Dropdown>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flex: 0,
+                      flexDirection: "row",
+                      height: "100%",
+                      alignItems: "center",
+                      justifyContent: "space-around"
+                    }}
+                  >
+                    <VideoPreview
+                      key={
+                        this.state.videoName + this.state.segmentIndex + "start"
+                      }
+                      name="start"
+                      frame={this.state.segmentStart || 0}
+                      onChange={this.videoPreviewChange}
+                      fps={this.state.metadata["fps"]}
+                      src={this.state.videoSrc}
+                      end={this.state.videoEnd}
+                    />
+                    <VideoPreview
+                      key={
+                        this.state.videoName + this.state.segmentIndex + "end"
+                      }
+                      name="end"
+                      frame={this.state.segmentEnd || this.state.videoEnd}
+                      onChange={this.videoPreviewChange}
+                      fps={this.state.metadata["fps"]}
+                      src={this.state.videoSrc}
+                      end={this.state.videoEnd}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flex: 0,
+                      flexDirection: "row",
+                      height: "100%",
+                      alignItems: "center",
+                      justifyContent: "space-around"
+                    }}
+                  >
+                    <Button
+                      content="Play section"
+                      icon="play"
+                      labelPosition="left"
+                      onClick={this.playSection}
+                    />
+                    <Button icon labelPosition="right">
+                      <Icon name="save" />
+                      Save
+                    </Button>
+                  </div>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flex: 0,
-                    flexDirection: "row",
-                    height: "100%",
-                    alignItems: "center",
-                    justifyContent: "space-around"
-                  }}
-                >
-                  <Button
-                    content="Play section"
-                    icon="play"
-                    labelPosition="left"
-                    onClick={this.playSection}
-                  />
-                  <Button icon labelPosition="right">
-                    <Icon name="save" />
-                    Save
-                  </Button>
-                </div>
-              </div>
-              {/* <div
+                {/* <div
                 style={{
                   display: "flex",
                   flex: "1 1 0",
@@ -496,19 +529,19 @@ class App extends Component {
                   justifyContent: "space-around"
                 }}
               > */}
-              <ScenesActions
-                key={this.state.segmentIndex + "scenes"}
-                mode="scenes"
-                items={
-                  this.state.segmentIndex > 0 || this.state.segmentIndex === 0
-                    ? this.state.metadata["annotations"][
-                        this.state.segmentIndex
-                      ]["labelScene"]
-                    : []
-                }
-              />
-              {/* </div> */}
-              {/* <div
+                <ScenesActions
+                  key={this.state.segmentIndex + "scenes"}
+                  mode="scenes"
+                  items={
+                    this.state.segmentIndex > 0 || this.state.segmentIndex === 0
+                      ? this.state.metadata["annotations"][
+                          this.state.segmentIndex
+                        ]["labelScene"]
+                      : []
+                  }
+                />
+                {/* </div> */}
+                {/* <div
                   style={{
                     display: "flex",
                     flex: "1 1 0",
@@ -520,20 +553,23 @@ class App extends Component {
                     justifyContent: "space-around"
                   }}
                 > */}
-              <ScenesActions
-                key={this.state.segmentIndex + "actions"}
-                mode="actions"
-                items={
-                  this.state.segmentIndex > 0 || this.state.segmentIndex === 0
-                    ? this.state.metadata["annotations"][
-                        this.state.segmentIndex
-                      ]["labelAction"]
-                    : []
-                }
-              />
-              {/* </div> */}
-            </div>
+                <ScenesActions
+                  key={this.state.segmentIndex + "actions"}
+                  mode="actions"
+                  items={
+                    this.state.segmentIndex > 0 || this.state.segmentIndex === 0
+                      ? this.state.metadata["annotations"][
+                          this.state.segmentIndex
+                        ]["labelAction"]
+                      : []
+                  }
+                />
+                {/* </div> */}
+              </div>
+            </Dimmer.Dimmable>
           </div>
+
+          {/* </Dimmer.Dimmable> */}
           {/* </Grid.Column>
             <Grid.Column> */}
           {/* <List> */}

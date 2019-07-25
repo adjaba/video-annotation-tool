@@ -45,7 +45,6 @@ export default class ScenesActions extends React.Component {
           display: "flex",
           flexDirection: "row",
           width: "100%",
-          overflowY: "auto",
           padding: "5px"
         }}
       >

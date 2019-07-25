@@ -43,22 +43,23 @@ export default class VideoPreview extends Component {
     //player.currentTime(event.target.value);
     player.currentTime(frameToSecs(event.target.value, this.props.fps));
 
-    // console.log('current time', player.currentTime())
-    // console.log(player.getVideoPlaybackQuality().totalVideoFrames);
-    // // var video = document.getElementById('videoPlay'),
+    console.log("current time", player.currentTime());
+    console.log(player.getVideoPlaybackQuality().totalVideoFrames);
+    // var video = document.getElementById('videoPlay'),
     // var lastTime = -1;
-    // function draw(a) {
+    // function draw(lastTime = -1) {
     //     var time = player.currentTime();
     //     if (time !== lastTime) {
+    //         console.log('lastTime: ' + lastTime)
     //         console.log('time: ' + time);
     //         requestAnimationFrame(draw);
 
     //         //todo: do your rendering here
     //         lastTime = time;
-    // }
+    //         console.log('lastTime   :' + lastTime)
+    //     }
 
     // //wait approximately 16ms and run again
-
     // }
 
     // draw()
@@ -80,7 +81,9 @@ export default class VideoPreview extends Component {
         }}
       >
         <VideoPlayer id={this.state.id} {...videoPreviewOptions} />
+        Frame
         <Input
+          style={{ width: "100px" }}
           type="number"
           id={this.props.name}
           onChange={e => {
@@ -88,7 +91,17 @@ export default class VideoPreview extends Component {
             this.props.onChange(e);
           }}
           value={this.state.frame}
-          key={this.props.inputKey}
+          min={0}
+          max={this.props.end}
+        ></Input>
+        Approximate Time
+        <Input
+          style={{ width: "100px" }}
+          type="number"
+          id={this.props.name + "time"}
+          disabled={true}
+          value={parseFloat(frameToSecs(this.state.frame, this.props.fps))}
+          key={this.props.name + "time"}
           min={0}
           max={this.props.end}
         ></Input>

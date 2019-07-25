@@ -51,11 +51,11 @@ export function frameToSecs(frame, fps) {
   // console.log(frame / 29.942323524343326);
   // console.log(29.942323524343326, (frame / 29.942323524343326));
   if (!fps) {
-    return 0;
+    return new Error("fps not defined");
   }
-  // console.log(fps, (parseInt(frame)+0.000002)/fps.toFixed(6));
+  // console.log(fps);
   return (
-    Math.ceil(((parseInt(frame) + 1) / fps.toFixed(6)) * 1000000) / 1000000
+    Math.ceil(((parseInt(frame) + 0.5) / fps.toFixed(6)) * 1000000) / 1000000
   );
   // 9.9666667 breaking point
   // (frame / fps).toFixed(7);
