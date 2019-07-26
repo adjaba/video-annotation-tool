@@ -6,7 +6,7 @@ import "video.js/dist/video-js.css";
 import videojs from "video.js";
 import Event from "./Event";
 import VideoPreview from "./VideoPreview";
-import { frameToSecs, secsToFrame, scenes, events } from "./utils";
+import { frameToSecs, secsToFrame, scenes, events, actions } from "./utils";
 import Sortable from "react-sortablejs";
 import ScenesActions from "./ScenesActions";
 
@@ -25,6 +25,8 @@ import "semantic-ui-css/semantic.min.css";
 
 import uniqueId from "lodash/uniqueId";
 import { EventEmitter } from "events";
+import { isThisSecond } from "date-fns";
+import { callbackify } from "util";
 
 // (function localFileVideoPlayer() {
 // 	'use strict'
@@ -75,13 +77,17 @@ class App extends Component {
     super(props);
     this.state = {
       videoName: null,
+      saved: true,
       videoSrc: null,
       json: null,
+      history: [],
       metadata: Object(),
       segmentStart: null,
-      segmentEvent: null,
       segmentEnd: null,
       segmentIndex: null,
+      segmentEvent: null,
+      segmentScenes: [],
+      segmentActions: [],
       videoEnd: 0,
       visibleMenu: false
     };
@@ -92,6 +98,8 @@ class App extends Component {
     this.playSection = this.playSection.bind(this);
     this.videoPreviewChange = this.videoPreviewChange.bind(this);
     this.saveSegment = this.saveSegment.bind(this);
+    this.export = this.export.bind(this);
+    this.setScenesActions = this.setScenesActions.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -103,21 +111,27 @@ class App extends Component {
       // if video and json exists
       if (this.state.videoName && this.state.json) {
         // if video and json match
-        if (Object.keys(this.state.json).indexOf(this.state.videoName) >= 0) {
+        if (
+          Object.keys(this.state.json["database"]).indexOf(
+            this.state.videoName
+          ) >= 0
+        ) {
           this.setState({
-            metadata: this.state.json[this.state.videoName],
+            metadata: this.state.json["database"][this.state.videoName],
             videoEnd: secsToFrame(
               videojs.getPlayer("videoJS").duration(),
-              this.state.json[this.state.videoName]["fps"]
+              this.state.json["database"][this.state.videoName]["fps"]
             ),
             segmentIndex: this.state.segmentIndex,
-            visibleMenu: true
+            visibleMenu: true,
+            history: []
           });
         } else {
           this.setState({
             metadata: Object(),
             videoEnd: null,
-            segmentIndex: null
+            segmentIndex: null,
+            history: []
           });
           alert(
             "Upload a video with the correct filename or upload the correct json file."
@@ -127,7 +141,8 @@ class App extends Component {
         this.setState({
           metadata: Object(),
           videoEnd: null,
-          segmentIndex: null
+          segmentIndex: null,
+          history: []
         });
       }
     }
@@ -198,7 +213,7 @@ class App extends Component {
     var reader = new FileReader();
     reader.onload = event => {
       this.setState({
-        json: JSON.parse(event.target.result)["database"]
+        json: JSON.parse(event.target.result)
       });
     };
     // } function(event){
@@ -264,15 +279,81 @@ class App extends Component {
 
   saveSegment() {
     var metadata = this.state.metadata;
+
+    // saving events
     metadata["annotations"][this.state.segmentIndex][
       "labelEvent"
     ] = this.state.segmentEvent;
     metadata["annotations"][this.state.segmentIndex]["labelEventIdx"] =
       events[this.state.segmentEvent];
 
+    // saving actions
+    metadata["annotations"][this.state.segmentIndex][
+      "labelAction"
+    ] = this.state.segmentActions;
+    metadata["annotations"][this.state.segmentIndex][
+      "labelActionIndex"
+    ] = this.state.segmentActions.map(action => actions[action]);
+    metadata["annotations"][this.state.segmentIndex][
+      "numberOfActions"
+    ] = this.state.segmentActions.length;
+
+    // saving scenes
+    metadata["annotations"][this.state.segmentIndex][
+      "labelScene"
+    ] = this.state.segmentScenes;
+    metadata["annotations"][this.state.segmentIndex][
+      "labelSceneIndex"
+    ] = this.state.segmentScenes.map(scene => scenes[scene]);
+    metadata["annotations"][this.state.segmentIndex][
+      "numberOfScenes"
+    ] = this.state.segmentScenes.length;
+
+    // TODO: saving time
     this.setState({
-      metadata: metadata
+      metadata: metadata,
+      saved: true
     });
+  }
+
+  export() {
+    // TODO: check if saved right now
+    if (!this.state.saved) {
+      const r = window.confirm(
+        "You have unsaved changes. Click OK to export the last saved version. Click cancel to cancel export."
+      );
+      if (!r) return;
+    }
+    var metadata = this.state.metadata;
+    var json = this.state.json;
+    json["database"][this.state.videoName] = metadata;
+
+    console.log(json);
+    var dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(json, null, 2));
+    var dlAnchorElem = document.createElement("a");
+    // var data = new File([json], "filename.json", {type: 'text/json;charset=utf-8'});
+    // var jsonURL = URL.createObjectURL(data);
+    // var tempLink = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+
+    // tempLink.href = jsonURL;
+    dlAnchorElem.setAttribute("download", "changed.json");
+    dlAnchorElem.click();
+  }
+  setScenesActions(items, mode) {
+    if (mode === "scenes") {
+      this.setState({
+        segmentScenes: items,
+        saved: false
+      });
+    } else if (mode === "actions") {
+      this.setState({
+        segmentActions: items,
+        saved: false
+      });
+    }
   }
   // async handleFilesSubmit(e) {
   //   console.log(e);
@@ -481,7 +562,10 @@ class App extends Component {
                   flex: 1,
                   flexDirection: "row",
                   flexWrap: "wrap",
-                  alignItems: "center"
+                  alignItems: "center",
+                  overflowY: "auto",
+                  height: "calc(100vh - 494px)",
+                  alignContent: "flex-start"
                 }}
               >
                 {/* <Grid.Column> */}
@@ -574,11 +658,15 @@ class App extends Component {
                     />
                     <Button
                       icon
-                      labelPosition="right"
+                      labelPosition="left"
                       onClick={this.saveSegment}
                     >
                       <Icon name="save" />
                       Save
+                    </Button>
+                    <Button icon labelPosition="left" onClick={this.export}>
+                      <Icon name="download" />
+                      Export
                     </Button>
                   </div>
                 </div>
@@ -597,6 +685,7 @@ class App extends Component {
                         : []
                     }
                     style={{ flex: 2 }}
+                    onChange={this.setScenesActions}
                   />
                   {/* </Grid.Column>
                   <Grid.Column> */}
@@ -612,6 +701,7 @@ class App extends Component {
                         : []
                     }
                     style={{ flex: 3 }}
+                    onChange={this.setScenesActions}
                   />
                 </div>
                 {/* </Grid.Column> */}

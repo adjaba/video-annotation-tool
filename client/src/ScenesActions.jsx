@@ -31,14 +31,6 @@ export default class ScenesActions extends React.Component {
         ? Object.keys(actions)
         : null;
 
-    // var filteredPool = pool.filter((item) => {return item.toLowerCase().indexOf(this.state.query.toLowerCase()) >= 0});
-    // var source = filteredPool.map((val, key) => (
-    //   <li key={key} data-id={val}>
-    //     {val}
-    //   </li>
-    // ));
-
-    // var width = this.props.mode === ""
     return (
       <div
         style={{
@@ -66,7 +58,10 @@ export default class ScenesActions extends React.Component {
             }}
             className="block-list"
             tag="ul"
-            onChange={(order, sortable, evt) => this.setState({ items: order })}
+            onChange={(order, sortable, evt) => {
+              this.setState({ items: order });
+              this.props.onChange(order, this.props.mode);
+            }}
           >
             {this.state.items.map((val, key) => (
               <li key={key} data-id={val}>
