@@ -89,7 +89,7 @@ class App extends Component {
       segmentEvent: null,
       segmentScenes: [],
       segmentActions: [],
-      videoEnd: 0,
+      videoEndSecs: 0,
       visibleMenu: false
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
@@ -120,17 +120,17 @@ class App extends Component {
           this.setState({
             metadata: this.state.json["database"][this.state.videoName],
             videoEnd: secsToFrame(
-              videojs.getPlayer("videoJS").duration(),
+              this.state.videoEndSecs,
               this.state.json["database"][this.state.videoName]["fps"]
             ),
-            segmentIndex: this.state.segmentIndex,
+            saved: true,
             visibleMenu: true,
             history: []
           });
         } else {
           this.setState({
             metadata: Object(),
-            videoEnd: null,
+            videoEndSecs: null,
             segmentIndex: null,
             history: []
           });
@@ -141,7 +141,7 @@ class App extends Component {
       } else {
         this.setState({
           metadata: Object(),
-          videoEnd: null,
+          videoEndSecs: null,
           segmentIndex: null,
           history: []
         });
@@ -159,7 +159,7 @@ class App extends Component {
         videoName: null,
         videoSrc: null,
         segmentIndex: null,
-        videoEnd: null,
+        videoEndSecs: null,
         metadata: Object()
       });
       player.reset();
@@ -199,6 +199,12 @@ class App extends Component {
         type: file.type
       },
       segmentIndex: null
+    });
+
+    player.on("loadedmetadata", () => {
+      this.setState({
+        videoEndSecs: player.duration()
+      });
     });
     // console.log(videojs.getPlayer("videoJSEnd"));
   }
@@ -659,7 +665,7 @@ class App extends Component {
                       onChange={this.videoPreviewChange}
                       fps={this.state.metadata["fps"]}
                       src={this.state.videoSrc}
-                      end={this.state.videoEnd}
+                      end={this.state.videoEndSecs}
                     />
                     <VideoPreview
                       key={
@@ -676,7 +682,7 @@ class App extends Component {
                       onChange={this.videoPreviewChange}
                       fps={this.state.metadata["fps"]}
                       src={this.state.videoSrc}
-                      end={this.state.videoEnd}
+                      end={this.state.videoEndSecs}
                     />
                   </div>
 

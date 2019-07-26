@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import VideoPlayer from "./VideoPlayer";
 import videojs from "video.js";
-import { frameToSecs, extractFramesFromVideo } from "./utils";
+import { frameToSecs, secsToFrame, extractFramesFromVideo } from "./utils";
 import { Input } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
@@ -24,6 +24,9 @@ export default class VideoPreview extends Component {
   }
 
   componentDidMount() {
+    if (!this.props.fps) {
+      return;
+    }
     if (this.props.src) {
       videojs(this.state.id).src(this.props.src);
       videojs(this.state.id).currentTime(
@@ -91,7 +94,7 @@ export default class VideoPreview extends Component {
           }}
           value={this.state.frame}
           min={0}
-          max={this.props.end}
+          max={secsToFrame(this.props.end, this.props.fps)}
         ></Input>
         Approximate Time
         <Input
@@ -102,7 +105,7 @@ export default class VideoPreview extends Component {
           value={parseFloat(frameToSecs(this.state.frame, this.props.fps))}
           key={this.props.name + "time"}
           min={0}
-          max={this.props.end}
+          max={secsToFrame(this.props.end, this.props.fps)}
         ></Input>
       </div>
     );
