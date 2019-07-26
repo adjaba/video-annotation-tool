@@ -80,6 +80,7 @@ class App extends Component {
       saved: true,
       videoSrc: null,
       json: null,
+      jsonName: null,
       history: [],
       metadata: Object(),
       segmentStart: null,
@@ -203,17 +204,24 @@ class App extends Component {
   }
 
   parseJSONInput(event) {
-    console.log(event.target.files[0]);
     if (!event.target.files[0]) {
       // this.setState({
       //   json: null
       // });
       return;
     }
+
     var reader = new FileReader();
     reader.onload = event => {
+      var json = JSON.parse(event.target.result);
+      if (!("database" in json)) {
+        alert("Wrong format, please upload new json.");
+        var jsonUpload = document.getElementById("input_json");
+        jsonUpload.click();
+        return;
+      }
       this.setState({
-        json: JSON.parse(event.target.result)
+        json: json
       });
     };
     // } function(event){
@@ -223,6 +231,13 @@ class App extends Component {
     //   })
     // }
     reader.readAsText(event.target.files[0]);
+
+    this.setState({
+      jsonName: event.target.files[0].name.substring(
+        0,
+        event.target.files[0].name.lastIndexOf(".")
+      )
+    });
   }
 
   // play section if end > start
