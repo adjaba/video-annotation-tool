@@ -38,13 +38,12 @@ export default class VideoPreview extends Component {
     console.log("there");
     var player = videojs.getPlayer(this.state.id);
     this.setState({
-      frame: parseInt(event.target.value) //parseFloat(event.target.value)//
+      frame: parseInt(event.target.value)
     });
-    //player.currentTime(event.target.value);
-    player.currentTime(frameToSecs(event.target.value, this.props.fps));
 
+    player.currentTime(frameToSecs(event.target.value, this.props.fps));
+    this.props.onChange(parseInt(event.target.value), this.props.name);
     console.log("current time", player.currentTime());
-    console.log(player.getVideoPlaybackQuality().totalVideoFrames);
     // var video = document.getElementById('videoPlay'),
     // var lastTime = -1;
     // function draw(lastTime = -1) {

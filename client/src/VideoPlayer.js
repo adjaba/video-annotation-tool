@@ -13,6 +13,10 @@ export default class VideoPlayer extends React.Component {
         this.play();
       });
     });
+
+    this.player.one("loadedmetadata", function() {
+      console.log(this.player.duration());
+    });
   }
 
   // destroy player on unmount

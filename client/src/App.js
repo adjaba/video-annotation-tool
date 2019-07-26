@@ -324,7 +324,11 @@ class App extends Component {
       "numberOfScenes"
     ] = this.state.segmentScenes.length;
 
-    // TODO: saving time
+    metadata["annotations"][this.state.segmentIndex]["segment"] = [
+      this.state.segmentStart,
+      this.state.segmentEnd
+    ];
+
     this.setState({
       metadata: metadata,
       saved: true
@@ -394,10 +398,12 @@ class App extends Component {
   //   myVideo.play();
   //   // form.reset();
   // }
-  videoPreviewChange(e) {
-    // this.setState({
-    //   segmentEnd: parseInt(e.target.value)
-    // });
+  videoPreviewChange(frame, name) {
+    if (name === "start") {
+      this.setState({ saved: false, segmentStart: frame });
+    } else if (name === "end") {
+      this.setState({ saved: false, segmentEnd: frame });
+    }
   }
 
   renderEvents() {
@@ -407,13 +413,21 @@ class App extends Component {
             key={i}
             {...prop}
             index={i}
-            onClick={() =>
+            onClick={() => {
+              if (!this.state.saved) {
+                const r = window.confirm(
+                  "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
+                );
+                if (!r) {
+                  return;
+                }
+              }
               this.setState({
                 segmentStart: prop["segment"][0],
                 segmentEnd: prop["segment"][1],
                 segmentIndex: prop["segmentIndex"]
-              })
-            }
+              });
+            }}
           />
         ))
       : null;
@@ -612,8 +626,7 @@ class App extends Component {
                         })
                       )}
                       defaultValue={
-                        this.state.segmentIndex > 0 ||
-                        this.state.segmentIndex === 0
+                        editReady
                           ? this.state.metadata["annotations"][
                               this.state.segmentIndex
                             ]["labelEvent"]
@@ -636,7 +649,13 @@ class App extends Component {
                         this.state.videoName + this.state.segmentIndex + "start"
                       }
                       name="start"
-                      frame={this.state.segmentStart || 0}
+                      frame={
+                        editReady
+                          ? this.state.metadata["annotations"][
+                              this.state.segmentIndex
+                            ]["segment"][0]
+                          : 0
+                      }
                       onChange={this.videoPreviewChange}
                       fps={this.state.metadata["fps"]}
                       src={this.state.videoSrc}
@@ -647,7 +666,13 @@ class App extends Component {
                         this.state.videoName + this.state.segmentIndex + "end"
                       }
                       name="end"
-                      frame={this.state.segmentEnd || this.state.videoEnd}
+                      frame={
+                        editReady
+                          ? this.state.metadata["annotations"][
+                              this.state.segmentIndex
+                            ]["segment"][1]
+                          : this.state.videoEnd
+                      }
                       onChange={this.videoPreviewChange}
                       fps={this.state.metadata["fps"]}
                       src={this.state.videoSrc}
