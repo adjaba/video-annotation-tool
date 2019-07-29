@@ -367,6 +367,7 @@ class App extends Component {
     dlAnchorElem.setAttribute("download", "changed.json");
     dlAnchorElem.click();
   }
+
   setScenesActions(items, mode) {
     if (mode === "scenes") {
       this.setState({
@@ -431,7 +432,9 @@ class App extends Component {
               this.setState({
                 segmentStart: prop["segment"][0],
                 segmentEnd: prop["segment"][1],
-                segmentIndex: prop["segmentIndex"]
+                segmentIndex: prop["segmentIndex"],
+                segmentActions: prop["labelAction"],
+                segmentScenes: prop["labelScene"]
               });
             }}
           />
@@ -723,11 +726,10 @@ class App extends Component {
                     key={this.state.segmentIndex + "scenes"}
                     mode="scenes"
                     items={
-                      this.state.segmentIndex > 0 ||
-                      this.state.segmentIndex === 0
-                        ? this.state.metadata["annotations"][
-                            this.state.segmentIndex
-                          ]["labelScene"]
+                      editReady
+                        ? this.state.segmentScenes.map(item =>
+                            item.toLowerCase()
+                          )
                         : []
                     }
                     style={{ flex: 2 }}
@@ -739,11 +741,10 @@ class App extends Component {
                     key={this.state.segmentIndex + "actions"}
                     mode="actions"
                     items={
-                      this.state.segmentIndex > 0 ||
-                      this.state.segmentIndex === 0
-                        ? this.state.metadata["annotations"][
-                            this.state.segmentIndex
-                          ]["labelAction"]
+                      editReady
+                        ? this.state.segmentActions.map(item =>
+                            item.toLowerCase()
+                          )
                         : []
                     }
                     style={{ flex: 3 }}

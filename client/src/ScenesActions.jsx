@@ -8,20 +8,15 @@ export default class ScenesActions extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: this.props.items.map(item => item.toLowerCase()),
       source:
         this.props.mode === "scenes"
-          ? Object.keys(scenes)
+          ? Object.keys(scenes).map(source => source.toLowerCase())
           : this.props.mode === "actions"
-          ? Object.keys(actions)
+          ? Object.keys(actions).map(source => source.toLowerCase())
           : null,
       trigger: false
     };
   }
-
-  // state = {
-  //   items: []
-  // };
 
   render() {
     var pool =
@@ -59,11 +54,10 @@ export default class ScenesActions extends React.Component {
             className="block-list"
             tag="ul"
             onChange={(order, sortable, evt) => {
-              this.setState({ items: order });
               this.props.onChange(order, this.props.mode);
             }}
           >
-            {this.state.items.map((val, key) => (
+            {this.props.items.map((val, key) => (
               <li key={key} data-id={val}>
                 {val}
                 <Icon
@@ -71,12 +65,9 @@ export default class ScenesActions extends React.Component {
                   name="delete"
                   style={{ float: "right" }}
                   onClick={() => {
-                    const items = this.state.items;
-                    console.log("deleting ", val, key, "from ", items);
+                    const items = this.props.items;
                     items.splice(key, 1);
-                    this.setState({
-                      items: items
-                    });
+                    this.props.onChange(items, this.props.mode);
                   }}
                 ></Icon>
               </li>
