@@ -4,6 +4,7 @@ import videojs from "video.js";
 import { frameToSecs, secsToFrame, extractFramesFromVideo } from "./utils";
 import { Input } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
+import { runInThisContext } from "vm";
 
 var videoPreviewOptions = {
   autoplay: false,
@@ -15,12 +16,12 @@ export default class VideoPreview extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      frame: this.props.frame,
       id:
         "videoJS" +
         this.props.name.charAt(0).toUpperCase() +
         this.props.name.slice(1)
     };
+    this.handleChange = this.handleChange.bind(this);
   }
 
   componentDidMount() {
@@ -38,15 +39,10 @@ export default class VideoPreview extends Component {
   }
 
   handleChange = event => {
-    console.log("there");
     var player = videojs.getPlayer(this.state.id);
-    // this.setState({
-    //   frame: parseInt(event.target.value)
-    // });
-
     player.currentTime(frameToSecs(event.target.value, this.props.fps));
     this.props.onChange(parseInt(event.target.value), this.props.name);
-    console.log("current time", player.currentTime());
+
     // var video = document.getElementById('videoPlay'),
     // var lastTime = -1;
     // function draw(lastTime = -1) {
@@ -90,7 +86,6 @@ export default class VideoPreview extends Component {
           id={this.props.name}
           onChange={e => {
             this.handleChange(e);
-            this.props.onChange(e);
           }}
           value={this.props.frame}
           min={0}

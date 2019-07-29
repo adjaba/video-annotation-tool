@@ -336,6 +336,9 @@ class App extends Component {
       this.state.segmentEnd
     ];
 
+    var history = this.state.history;
+    history.push(metadata);
+
     this.setState({
       metadata: metadata,
       saved: true
@@ -494,9 +497,23 @@ class App extends Component {
               onClick={() => this.setState({ visibleMenu: false })}
             />
           </Header>
-          <List divided selection style={{ flex: 1, overflowY: "auto" }}>
-            {this.renderEvents()}
-          </List>
+          <div style={{ flex: 1, overflowY: "auto" }}>
+            <Button
+              fluid
+              positive
+              icon
+              labelPosition="left"
+              onClick={this.add}
+              disabled={Object.keys(this.state.metadata).length === 0}
+            >
+              {" "}
+              <Icon name="add" size="small" />
+              Add Event
+            </Button>
+            <List divided selection>
+              {this.renderEvents()}
+            </List>
+          </div>
           <Button
             icon
             labelPosition="left"
@@ -604,7 +621,6 @@ class App extends Component {
             }}
           >
             <Dimmer.Dimmable
-              fluid
               blurring
               dimmed={active}
               style={{ height: "100%" }}
@@ -698,7 +714,9 @@ class App extends Component {
                       }
                       name="end"
                       frame={
-                        editReady ? this.state.segmentEnd : this.state.videoEnd
+                        editReady
+                          ? this.state.segmentEnd
+                          : this.state.videoEnd || 0
                       }
                       onChange={this.videoPreviewChange}
                       fps={this.state.metadata["fps"]}
