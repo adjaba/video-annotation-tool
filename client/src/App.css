@@ -100,3 +100,10 @@ ul {
     display: flex;
   }
 } */
+
+@media screen and (min-width: 1150px) {
+  .block-list {
+    min-width: 105px;
+    min-width: max-content;
+  }
+}

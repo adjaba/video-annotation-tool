@@ -330,6 +330,7 @@ class App extends Component {
       "numberOfScenes"
     ] = this.state.segmentScenes.length;
 
+    // saving time
     metadata["annotations"][this.state.segmentIndex]["segment"] = [
       this.state.segmentStart,
       this.state.segmentEnd
@@ -613,10 +614,6 @@ class App extends Component {
                 <Header size="large" style={{ padding: "5px 10px" }}>
                   Event {this.state.segmentIndex}
                 </Header>
-                <Button icon labelPosition="left" onClick={this.saveSegment}>
-                  <Icon name="save" />
-                  Save
-                </Button>
               </div>
               {/* <Grid columns = {3} divided style={{
                   display: "flex",
@@ -656,6 +653,7 @@ class App extends Component {
                         this.setState({
                           segmentEvent: value
                         });
+                        this.saveSegment();
                       }}
                       options={Object.keys(events).map(event =>
                         Object({
@@ -725,6 +723,14 @@ class App extends Component {
                       labelPosition="left"
                       onClick={this.playSection}
                     />
+                    <Button
+                      icon
+                      labelPosition="left"
+                      onClick={this.saveSegment}
+                    >
+                      <Icon name="save" />
+                      Save frames
+                    </Button>
                   </div>
                 </div>
                 {/* </Grid.Column>
