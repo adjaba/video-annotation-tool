@@ -30,7 +30,7 @@ export default class VideoPreview extends Component {
     if (this.props.src) {
       videojs(this.state.id).src(this.props.src);
       videojs(this.state.id).currentTime(
-        frameToSecs(this.state.frame, this.props.fps)
+        frameToSecs(this.props.frame, this.props.fps)
       );
       // let frames = extractFramesFromVideo(this.state.id, this.props.fps);
       // console.log(frames);
@@ -40,9 +40,9 @@ export default class VideoPreview extends Component {
   handleChange = event => {
     console.log("there");
     var player = videojs.getPlayer(this.state.id);
-    this.setState({
-      frame: parseInt(event.target.value)
-    });
+    // this.setState({
+    //   frame: parseInt(event.target.value)
+    // });
 
     player.currentTime(frameToSecs(event.target.value, this.props.fps));
     this.props.onChange(parseInt(event.target.value), this.props.name);
@@ -92,7 +92,7 @@ export default class VideoPreview extends Component {
             this.handleChange(e);
             this.props.onChange(e);
           }}
-          value={this.state.frame}
+          value={this.props.frame}
           min={0}
           max={secsToFrame(this.props.end, this.props.fps)}
         ></Input>
@@ -102,7 +102,7 @@ export default class VideoPreview extends Component {
           type="number"
           id={this.props.name + "time"}
           disabled={true}
-          value={parseFloat(frameToSecs(this.state.frame, this.props.fps))}
+          value={parseFloat(frameToSecs(this.props.frame, this.props.fps))}
           key={this.props.name + "time"}
           min={0}
           max={secsToFrame(this.props.end, this.props.fps)}

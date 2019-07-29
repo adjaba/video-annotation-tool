@@ -349,6 +349,7 @@ class App extends Component {
       );
       if (!r) return;
     }
+
     var metadata = this.state.metadata;
     var json = this.state.json;
     json["database"][this.state.videoName] = metadata;
@@ -380,6 +381,7 @@ class App extends Component {
         saved: false
       });
     }
+    this.saveSegment();
   }
   // async handleFilesSubmit(e) {
   //   console.log(e);
@@ -494,7 +496,12 @@ class App extends Component {
           <List divided selection style={{ flex: 1, overflowY: "auto" }}>
             {this.renderEvents()}
           </List>
-          <Button icon labelPosition="left" onClick={this.export}>
+          <Button
+            icon
+            labelPosition="left"
+            onClick={this.export}
+            disabled={Object.keys(this.state.metadata).length === 0}
+          >
             <Icon name="download" />
             Export
           </Button>
@@ -668,13 +675,7 @@ class App extends Component {
                         this.state.videoName + this.state.segmentIndex + "start"
                       }
                       name="start"
-                      frame={
-                        editReady
-                          ? this.state.metadata["annotations"][
-                              this.state.segmentIndex
-                            ]["segment"][0]
-                          : 0
-                      }
+                      frame={editReady ? this.state.segmentStart : 0}
                       onChange={this.videoPreviewChange}
                       fps={this.state.metadata["fps"]}
                       src={this.state.videoSrc}
@@ -686,11 +687,7 @@ class App extends Component {
                       }
                       name="end"
                       frame={
-                        editReady
-                          ? this.state.metadata["annotations"][
-                              this.state.segmentIndex
-                            ]["segment"][1]
-                          : this.state.videoEnd
+                        editReady ? this.state.segmentEnd : this.state.videoEnd
                       }
                       onChange={this.videoPreviewChange}
                       fps={this.state.metadata["fps"]}
