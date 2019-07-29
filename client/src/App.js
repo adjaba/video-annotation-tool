@@ -507,18 +507,31 @@ class App extends Component {
           </Button>
         </div>
         <div
-          hidden={this.state.visibleMenu}
           style={{
             height: "auto",
-            padding: "1em",
-            borderRight: "1px solid #ccc"
+            padding: "1em 0.5em",
+            borderRight: "1px solid #ccc",
+            display: this.state.visibleMenu ? "none" : "flex",
+            flexDirection: "column",
+            maxWidth: "50px",
+            alignItems: "center"
           }}
         >
           <Icon
             size="large"
             name="bars"
             onClick={() => this.setState({ visibleMenu: true })}
+            style={{ marginRight: 0 }}
           />
+          <div style={{ display: "flex", flex: 1 }}></div>
+          <Button
+            size="small"
+            icon
+            onClick={this.export}
+            disabled={Object.keys(this.state.metadata).length === 0}
+          >
+            <Icon name="download" />
+          </Button>
         </div>
         <div
           style={{
