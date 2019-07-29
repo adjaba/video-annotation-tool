@@ -465,10 +465,12 @@ class App extends Component {
         </Header>
       </div>
     );
+
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <div
           style={{
+            display: this.state.visibleMenu ? "flex" : "none",
             flexDirection: "column",
             padding: "1em",
             borderRight: "1px solid #ccc",
@@ -476,9 +478,9 @@ class App extends Component {
             flex: 1,
             maxWidth: 300,
             backgroundColor: "#fff",
-            minWidth: "max-content"
+            minWidth: "max-content",
+            maxWidth: "300px"
           }}
-          hidden={!this.state.visibleMenu}
         >
           <Header size="large" style={{ flex: "0 0 auto" }}>
             Events
@@ -492,6 +494,10 @@ class App extends Component {
           <List divided selection style={{ flex: 1, overflowY: "auto" }}>
             {this.renderEvents()}
           </List>
+          <Button icon labelPosition="left" onClick={this.export}>
+            <Icon name="download" />
+            Export
+          </Button>
         </div>
         <div
           hidden={this.state.visibleMenu}
@@ -587,6 +593,10 @@ class App extends Component {
                 <Header size="large" style={{ padding: "5px 10px" }}>
                   Event {this.state.segmentIndex}
                 </Header>
+                <Button icon labelPosition="left" onClick={this.saveSegment}>
+                  <Icon name="save" />
+                  Save
+                </Button>
               </div>
               {/* <Grid columns = {3} divided style={{
                   display: "flex",
@@ -705,18 +715,6 @@ class App extends Component {
                       labelPosition="left"
                       onClick={this.playSection}
                     />
-                    <Button
-                      icon
-                      labelPosition="left"
-                      onClick={this.saveSegment}
-                    >
-                      <Icon name="save" />
-                      Save
-                    </Button>
-                    <Button icon labelPosition="left" onClick={this.export}>
-                      <Icon name="download" />
-                      Export
-                    </Button>
                   </div>
                 </div>
                 {/* </Grid.Column>
