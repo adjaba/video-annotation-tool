@@ -108,6 +108,7 @@ class App extends Component {
     this.setEvent = this.setEvent.bind(this);
     this.undo = this.undo.bind(this);
     this.redo = this.redo.bind(this);
+    this.addEvent = this.addEvent.bind(this);
   }
 
   handlers = {
@@ -136,7 +137,12 @@ class App extends Component {
             ),
             saved: true,
             visibleMenu: true,
-            history: [this.state.json["database"][this.state.videoName]]
+            history: [
+              [
+                this.state.json["database"][this.state.videoName],
+                this.state.segmentIndex
+              ]
+            ]
           });
         } else {
           this.setState({
@@ -265,14 +271,14 @@ class App extends Component {
         startInput,
         this.state.history[
           this.state.history.length - 1 - this.state.historyIndex
-        ]["fps"]
+        ][0]["fps"]
       ) || 0;
     var end =
       frameToSecs(
         endInput,
         this.state.history[
           this.state.history.length - 1 - this.state.historyIndex
-        ]["fps"]
+        ][0]["fps"]
       ) || myPlayer.duration();
 
     if (end > start) {
@@ -301,14 +307,14 @@ class App extends Component {
         startInput,
         this.state.history[
           this.state.history.length - 1 - this.state.historyIndex
-        ]["fps"]
+        ][0]["fps"]
       ) || 0;
     var end =
       frameToSecs(
         endInput,
         this.state.history[
           this.state.history.length - 1 - this.state.historyIndex
-        ]["fps"]
+        ][0]["fps"]
       ) || myPlayer.duration();
 
     myPlayer.currentTime(start);
@@ -335,7 +341,7 @@ class App extends Component {
         0,
         this.state.history.length - this.state.historyIndex
       ),
-      { $push: [metadata] }
+      { $push: [[metadata, this.state.segmentIndex]] }
     );
     history = history.slice(Math.max(history.length - 20, 0));
 
@@ -345,11 +351,53 @@ class App extends Component {
     });
   }
 
+  addEvent() {
+    const newIndex = this.state.history[
+      this.state.history.length - 1 - this.state.historyIndex
+    ][0]["annotations"].length;
+    var metadata = update(
+      this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][0],
+      {
+        annotations: {
+          $push: [
+            {
+              segmentIndex: newIndex,
+              labelEvent: null,
+              labelEventIndex: null,
+              segment: [0, this.state.videoEnd],
+              labelScene: [],
+              labelSceneIndex: [],
+              numberOfScenes: 0,
+              labelAction: [],
+              labelActionIndex: [],
+              numberOfActions: []
+            }
+          ]
+        }
+      }
+    );
+    console.log(
+      this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][0]["annotations"],
+      metadata
+    );
+    this.saveMetadata(metadata);
+    this.setState({
+      segmentIndex: newIndex
+    });
+  }
+
   undo() {
     var historyIndex = this.state.historyIndex;
     historyIndex = Math.min(this.state.history.length - 1, historyIndex + 1);
     this.setState({
-      historyIndex: historyIndex
+      historyIndex: historyIndex,
+      segmentIndex: this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][1]
     });
   }
 
@@ -357,14 +405,18 @@ class App extends Component {
     var historyIndex = this.state.historyIndex;
     historyIndex = Math.max(0, historyIndex - 1);
     this.setState({
-      historyIndex: historyIndex
+      historyIndex: historyIndex,
+      segmentIndex: this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][1]
     });
   }
+
   saveVideoPreview() {
     var metadata = update(
       this.state.history[
         this.state.history.length - 1 - this.state.historyIndex
-      ],
+      ][0],
       {
         annotations: {
           [this.state.segmentIndex]: {
@@ -389,7 +441,7 @@ class App extends Component {
 
     var metadata = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
-    ];
+    ][0];
     var json = this.state.json;
     json["database"][this.state.videoName] = metadata;
 
@@ -414,7 +466,7 @@ class App extends Component {
       metadata = update(
         this.state.history[
           this.state.history.length - 1 - this.state.historyIndex
-        ],
+        ][0],
         {
           annotations: {
             [this.state.segmentIndex]: {
@@ -442,7 +494,7 @@ class App extends Component {
       metadata = update(
         this.state.history[
           this.state.history.length - 1 - this.state.historyIndex
-        ],
+        ][0],
         {
           annotations: {
             [this.state.segmentIndex]: {
@@ -505,7 +557,7 @@ class App extends Component {
     var metadata = update(
       this.state.history[
         this.state.history.length - 1 - this.state.historyIndex
-      ],
+      ][0],
       {
         annotations: {
           [this.state.segmentIndex]: { labelEvent: { $set: value } }
@@ -531,10 +583,10 @@ class App extends Component {
       ? "annotations" in
         this.state.history[
           this.state.history.length - 1 - this.state.historyIndex
-        ]
+        ][0]
         ? this.state.history[
             this.state.history.length - 1 - this.state.historyIndex
-          ]["annotations"].map((prop, i) => (
+          ][0]["annotations"].map((prop, i) => (
             <Event
               key={i}
               {...prop}
@@ -561,6 +613,7 @@ class App extends Component {
         : null
       : null;
   }
+
   render() {
     const ready = this.state.json && this.state.videoName;
     const editReady =
@@ -588,7 +641,11 @@ class App extends Component {
 
     const currentMetadata = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
-    ];
+    ]
+      ? this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ][0]
+      : null;
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <GlobalHotKeys keyMap={keyMap} handlers={this.handlers} />
@@ -621,7 +678,7 @@ class App extends Component {
               positive
               icon
               labelPosition="left"
-              onClick={this.add}
+              onClick={this.addEvent}
               disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
             >
               {" "}
