@@ -1,15 +1,14 @@
 import React, { Component } from "react";
 import "./App.css";
-import UploadVideos from "./UploadVideos";
 import VideoPlayer from "./VideoPlayer";
 import "video.js/dist/video-js.css";
 import videojs from "video.js";
 import Event from "./Event";
 import VideoPreview from "./VideoPreview";
 import { frameToSecs, secsToFrame, scenes, events, actions } from "./utils";
-import Sortable from "react-sortablejs";
 import ScenesActions from "./ScenesActions";
 import update from "immutability-helper";
+import { Hotkeys, GlobalHotKeys } from "react-hotkeys";
 
 import {
   Header,
@@ -73,6 +72,10 @@ var videoPreviewOptions = {
   height: 200
 };
 
+const keyMap = {
+  UNDO: "ctrl+z"
+};
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -102,7 +105,12 @@ class App extends Component {
     this.export = this.export.bind(this);
     this.setScenesActions = this.setScenesActions.bind(this);
     this.setEvent = this.setEvent.bind(this);
+    this.undo = this.undo.bind(this);
   }
+
+  handlers = {
+    UNDO: () => this.undo()
+  };
 
   componentDidUpdate(prevProps, prevState) {
     const videoNameJSONUpdated =
@@ -319,11 +327,26 @@ class App extends Component {
   }
 
   saveMetadata(metadata) {
-    var history = update(this.state.history, { $push: [metadata] });
+    var history = update(
+      this.state.history.slice(
+        0,
+        this.state.history.length - this.state.historyIndex
+      ),
+      { $push: [metadata] }
+    );
     history = history.slice(Math.max(history.length - 20, 0));
 
     this.setState({
-      history: history
+      history: history,
+      historyIndex: 0
+    });
+  }
+
+  undo() {
+    var historyIndex = this.state.historyIndex;
+    historyIndex = Math.min(this.state.history.length - 1, historyIndex + 1);
+    this.setState({
+      historyIndex: historyIndex
     });
   }
 
@@ -558,6 +581,7 @@ class App extends Component {
     ];
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
+        <GlobalHotKeys keyMap={keyMap} handlers={this.handlers} />
         <div
           style={{
             display: this.state.visibleMenu ? "flex" : "none",
