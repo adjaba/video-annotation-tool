@@ -84,7 +84,6 @@ class App extends Component {
       jsonName: null,
       history: [],
       historyIndex: 0,
-      metadata: Object(),
       segmentStart: null,
       segmentEnd: null,
       segmentIndex: null,
@@ -100,7 +99,6 @@ class App extends Component {
     // this.frameToSecs = this.frameToSecs.bind(this);
     this.playSection = this.playSection.bind(this);
     this.videoPreviewChange = this.videoPreviewChange.bind(this);
-    this.saveSegment = this.saveSegment.bind(this);
     this.export = this.export.bind(this);
     this.setScenesActions = this.setScenesActions.bind(this);
     this.setEvent = this.setEvent.bind(this);
@@ -121,7 +119,6 @@ class App extends Component {
           ) >= 0
         ) {
           this.setState({
-            metadata: this.state.json["database"][this.state.videoName],
             videoEnd: secsToFrame(
               this.state.videoEndSecs,
               this.state.json["database"][this.state.videoName]["fps"]
@@ -132,7 +129,6 @@ class App extends Component {
           });
         } else {
           this.setState({
-            metadata: Object(),
             videoEndSecs: null,
             segmentIndex: null,
             history: []
@@ -143,7 +139,6 @@ class App extends Component {
         }
       } else {
         this.setState({
-          metadata: Object(),
           videoEndSecs: null,
           segmentIndex: null,
           history: []
@@ -162,8 +157,7 @@ class App extends Component {
         videoName: null,
         videoSrc: null,
         segmentIndex: null,
-        videoEndSecs: null,
-        metadata: Object()
+        videoEndSecs: null
       });
       player.reset();
       return;
@@ -255,9 +249,20 @@ class App extends Component {
     var myPlayer = videojs.getPlayer("videoJS");
     var startInput = parseInt(document.getElementById("start").value);
     var endInput = parseInt(document.getElementById("end").value);
-    var start = frameToSecs(startInput, this.state.metadata["fps"]) || 0;
+    var start =
+      frameToSecs(
+        startInput,
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ]["fps"]
+      ) || 0;
     var end =
-      frameToSecs(endInput, this.state.metadata["fps"]) || myPlayer.duration();
+      frameToSecs(
+        endInput,
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ]["fps"]
+      ) || myPlayer.duration();
 
     if (end > start) {
       myPlayer.currentTime(start);
@@ -280,9 +285,20 @@ class App extends Component {
     var myPlayer = videojs.getPlayer("videoJS");
     var startInput = parseInt(document.getElementById("start").value);
     var endInput = parseInt(document.getElementById("end").value);
-    var start = frameToSecs(startInput, this.state.metadata["fps"]) || 0;
+    var start =
+      frameToSecs(
+        startInput,
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ]["fps"]
+      ) || 0;
     var end =
-      frameToSecs(endInput, this.state.metadata["fps"]) || myPlayer.duration();
+      frameToSecs(
+        endInput,
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ]["fps"]
+      ) || myPlayer.duration();
 
     myPlayer.currentTime(start);
     console.log(myPlayer);
@@ -328,54 +344,6 @@ class App extends Component {
     );
     this.saveMetadata(metadata);
   }
-  saveSegment() {
-    var metadata = this.state.metadata;
-
-    // saving events
-    metadata["annotations"][this.state.segmentIndex][
-      "labelEvent"
-    ] = this.state.segmentEvent;
-    metadata["annotations"][this.state.segmentIndex]["labelEventIdx"] =
-      events[this.state.segmentEvent];
-
-    // saving actions
-    metadata["annotations"][this.state.segmentIndex][
-      "labelAction"
-    ] = this.state.segmentActions;
-    metadata["annotations"][this.state.segmentIndex][
-      "labelActionIndex"
-    ] = this.state.segmentActions.map(action => actions[action]);
-    metadata["annotations"][this.state.segmentIndex][
-      "numberOfActions"
-    ] = this.state.segmentActions.length;
-
-    // saving scenes
-    metadata["annotations"][this.state.segmentIndex][
-      "labelScene"
-    ] = this.state.segmentScenes;
-    metadata["annotations"][this.state.segmentIndex][
-      "labelSceneIndex"
-    ] = this.state.segmentScenes.map(scene => scenes[scene]);
-    metadata["annotations"][this.state.segmentIndex][
-      "numberOfScenes"
-    ] = this.state.segmentScenes.length;
-
-    // saving time
-    metadata["annotations"][this.state.segmentIndex]["segment"] = [
-      this.state.segmentStart,
-      this.state.segmentEnd
-    ];
-
-    var history = this.state.history;
-    history.push(metadata);
-    history = history.slice(Math.max(history.length - 20, 0));
-
-    this.setState({
-      metadata: metadata,
-      saved: true,
-      history: history
-    });
-  }
 
   export() {
     // TODO: check if saved right now
@@ -386,7 +354,9 @@ class App extends Component {
       if (!r) return;
     }
 
-    var metadata = this.state.metadata;
+    var metadata = this.state.history[
+      this.state.history.length - 1 - this.state.historyIndex
+    ];
     var json = this.state.json;
     json["database"][this.state.videoName] = metadata;
 
@@ -618,7 +588,7 @@ class App extends Component {
               icon
               labelPosition="left"
               onClick={this.add}
-              disabled={Object.keys(this.state.metadata).length === 0}
+              disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
             >
               {" "}
               <Icon name="add" size="small" />
@@ -632,7 +602,7 @@ class App extends Component {
             icon
             labelPosition="left"
             onClick={this.export}
-            disabled={Object.keys(this.state.metadata).length === 0}
+            disabled={Object.keys(this.state.history).length === 0}
           >
             <Icon name="download" />
             Export
@@ -660,7 +630,7 @@ class App extends Component {
             size="small"
             icon
             onClick={this.export}
-            disabled={Object.keys(this.state.metadata).length === 0}
+            disabled={Object.keys(this.state.history).length === 0}
           >
             <Icon name="download" />
           </Button>
@@ -789,7 +759,7 @@ class App extends Component {
                       )}
                       defaultValue={
                         editReady
-                          ? this.state.metadata["annotations"][
+                          ? currentMetadata["annotations"][
                               this.state.segmentIndex
                             ]["labelEvent"]
                           : null
@@ -813,7 +783,7 @@ class App extends Component {
                       name="start"
                       frame={editReady ? this.state.segmentStart : 0}
                       onChange={this.videoPreviewChange}
-                      fps={this.state.metadata["fps"]}
+                      fps={currentMetadata ? currentMetadata["fps"] : null}
                       src={this.state.videoSrc}
                       end={this.state.videoEndSecs}
                     />
@@ -828,7 +798,7 @@ class App extends Component {
                           : this.state.videoEnd || 0
                       }
                       onChange={this.videoPreviewChange}
-                      fps={this.state.metadata["fps"]}
+                      fps={currentMetadata ? currentMetadata["fps"] : null}
                       src={this.state.videoSrc}
                       end={this.state.videoEndSecs}
                     />
