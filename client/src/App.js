@@ -9,6 +9,7 @@ import VideoPreview from "./VideoPreview";
 import { frameToSecs, secsToFrame, scenes, events, actions } from "./utils";
 import Sortable from "react-sortablejs";
 import ScenesActions from "./ScenesActions";
+import update from "immutability-helper";
 
 import {
   Header,
@@ -82,6 +83,7 @@ class App extends Component {
       json: null,
       jsonName: null,
       history: [],
+      historyIndex: 0,
       metadata: Object(),
       segmentStart: null,
       segmentEnd: null,
@@ -101,6 +103,7 @@ class App extends Component {
     this.saveSegment = this.saveSegment.bind(this);
     this.export = this.export.bind(this);
     this.setScenesActions = this.setScenesActions.bind(this);
+    this.setEvent = this.setEvent.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -125,7 +128,7 @@ class App extends Component {
             ),
             saved: true,
             visibleMenu: true,
-            history: []
+            history: [this.state.json["database"][this.state.videoName]]
           });
         } else {
           this.setState({
@@ -220,6 +223,7 @@ class App extends Component {
     var reader = new FileReader();
     reader.onload = event => {
       var json = JSON.parse(event.target.result);
+      // TODO: add more to ensure correct formatting (ex: annotations)
       if (!("database" in json)) {
         alert("Wrong format, please upload new json.");
         var jsonUpload = document.getElementById("input_json");
@@ -298,6 +302,32 @@ class App extends Component {
     myPlayer.play();
   }
 
+  saveMetadata(metadata) {
+    var history = update(this.state.history, { $push: [metadata] });
+    history = history.slice(Math.max(history.length - 20, 0));
+
+    this.setState({
+      history: history
+    });
+  }
+
+  saveVideoPreview() {
+    var metadata = update(
+      this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ],
+      {
+        annotations: {
+          [this.state.segmentIndex]: {
+            segment: {
+              $set: [this.state.segmentStart, this.state.segmentEnd]
+            }
+          }
+        }
+      }
+    );
+    this.saveMetadata(metadata);
+  }
   saveSegment() {
     var metadata = this.state.metadata;
 
@@ -338,10 +368,12 @@ class App extends Component {
 
     var history = this.state.history;
     history.push(metadata);
+    history = history.slice(Math.max(history.length - 20, 0));
 
     this.setState({
       metadata: metadata,
-      saved: true
+      saved: true,
+      history: history
     });
   }
 
@@ -374,18 +406,65 @@ class App extends Component {
   }
 
   setScenesActions(items, mode) {
+    var metadata;
     if (mode === "scenes") {
-      this.setState({
-        segmentScenes: items,
-        saved: false
+      metadata = update(
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ],
+        {
+          annotations: {
+            [this.state.segmentIndex]: {
+              labelScene: { $set: items }
+            }
+          }
+        }
+      );
+      metadata = update(metadata, {
+        annotations: {
+          [this.state.segmentIndex]: {
+            labelSceneIndex: { $set: items.map(scene => scenes[scene]) }
+          }
+        }
+      });
+
+      metadata = update(metadata, {
+        annotations: {
+          [this.state.segmentIndex]: {
+            numberOfScenes: { $set: items.length }
+          }
+        }
       });
     } else if (mode === "actions") {
-      this.setState({
-        segmentActions: items,
-        saved: false
+      metadata = update(
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ],
+        {
+          annotations: {
+            [this.state.segmentIndex]: {
+              labelAction: { $set: items }
+            }
+          }
+        }
+      );
+      metadata = update(metadata, {
+        annotations: {
+          [this.state.segmentIndex]: {
+            labelActionIndex: { $set: items.map(action => actions[action]) }
+          }
+        }
+      });
+
+      metadata = update(metadata, {
+        annotations: {
+          [this.state.segmentIndex]: {
+            numberOfActions: { $set: items.length }
+          }
+        }
       });
     }
-    this.saveSegment();
+    this.saveMetadata(metadata);
   }
   // async handleFilesSubmit(e) {
   //   console.log(e);
@@ -419,32 +498,64 @@ class App extends Component {
     }
   }
 
+  setEvent(value) {
+    var metadata = update(
+      this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ],
+      {
+        annotations: {
+          [this.state.segmentIndex]: { labelEvent: { $set: value } }
+        }
+      }
+    );
+    metadata = update(metadata, {
+      annotations: {
+        [this.state.segmentIndex]: { labelEventIdx: { $set: events[value] } }
+      }
+    });
+    this.saveMetadata(metadata);
+    // console.log(metadata);
+    // console.log('old', this.state.metadata);
+    // this.setState({
+    //   segmentEvent: value
+    // });
+    // this.saveSegment();
+  }
+
   renderEvents() {
-    return "annotations" in this.state.metadata
-      ? this.state.metadata["annotations"].map((prop, i) => (
-          <Event
-            key={i}
-            {...prop}
-            index={i}
-            onClick={() => {
-              if (!this.state.saved) {
-                const r = window.confirm(
-                  "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
-                );
-                if (!r) {
-                  return;
+    return this.state.history.length > 0
+      ? "annotations" in
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ]
+        ? this.state.history[
+            this.state.history.length - 1 - this.state.historyIndex
+          ]["annotations"].map((prop, i) => (
+            <Event
+              key={i}
+              {...prop}
+              index={i}
+              onClick={() => {
+                if (!this.state.saved) {
+                  const r = window.confirm(
+                    "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
+                  );
+                  if (!r) {
+                    return;
+                  }
                 }
-              }
-              this.setState({
-                segmentStart: prop["segment"][0],
-                segmentEnd: prop["segment"][1],
-                segmentIndex: prop["segmentIndex"],
-                segmentActions: prop["labelAction"],
-                segmentScenes: prop["labelScene"]
-              });
-            }}
-          />
-        ))
+                this.setState({
+                  segmentStart: prop["segment"][0],
+                  segmentEnd: prop["segment"][1],
+                  segmentIndex: prop["segmentIndex"],
+                  segmentActions: prop["labelAction"],
+                  segmentScenes: prop["labelScene"]
+                });
+              }}
+            />
+          ))
+        : null
       : null;
   }
   render() {
@@ -472,6 +583,9 @@ class App extends Component {
       </div>
     );
 
+    const currentMetadata = this.state.history[
+      this.state.history.length - 1 - this.state.historyIndex
+    ];
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <div
@@ -665,12 +779,7 @@ class App extends Component {
                       key={this.state.segmentIndex}
                       search
                       selection
-                      onChange={(e, { value }) => {
-                        this.setState({
-                          segmentEvent: value
-                        });
-                        this.saveSegment();
-                      }}
+                      onChange={(e, { value }) => this.setEvent(value)}
                       options={Object.keys(events).map(event =>
                         Object({
                           key: events[event],
@@ -744,7 +853,9 @@ class App extends Component {
                     <Button
                       icon
                       labelPosition="left"
-                      onClick={this.saveSegment}
+                      onClick={e => {
+                        this.saveVideoPreview();
+                      }}
                     >
                       <Icon name="save" />
                       Save frames
@@ -759,9 +870,9 @@ class App extends Component {
                     mode="scenes"
                     items={
                       editReady
-                        ? this.state.segmentScenes.map(item =>
-                            item.toLowerCase()
-                          )
+                        ? currentMetadata["annotations"][
+                            this.state.segmentIndex
+                          ]["labelScene"].map(item => item.toLowerCase())
                         : []
                     }
                     style={{ flex: 2 }}
@@ -774,9 +885,9 @@ class App extends Component {
                     mode="actions"
                     items={
                       editReady
-                        ? this.state.segmentActions.map(item =>
-                            item.toLowerCase()
-                          )
+                        ? currentMetadata["annotations"][
+                            this.state.segmentIndex
+                          ]["labelAction"].map(item => item.toLowerCase())
                         : []
                     }
                     style={{ flex: 3 }}
