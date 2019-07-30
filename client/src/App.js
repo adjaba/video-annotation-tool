@@ -73,7 +73,8 @@ var videoPreviewOptions = {
 };
 
 const keyMap = {
-  UNDO: "ctrl+z"
+  UNDO: "ctrl+z",
+  REDO: ["ctrl+y", "shift+ctrl+z"]
 };
 
 class App extends Component {
@@ -106,10 +107,12 @@ class App extends Component {
     this.setScenesActions = this.setScenesActions.bind(this);
     this.setEvent = this.setEvent.bind(this);
     this.undo = this.undo.bind(this);
+    this.redo = this.redo.bind(this);
   }
 
   handlers = {
-    UNDO: () => this.undo()
+    UNDO: () => this.undo(),
+    REDO: () => this.redo()
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -350,6 +353,13 @@ class App extends Component {
     });
   }
 
+  redo() {
+    var historyIndex = this.state.historyIndex;
+    historyIndex = Math.max(0, historyIndex - 1);
+    this.setState({
+      historyIndex: historyIndex
+    });
+  }
   saveVideoPreview() {
     var metadata = update(
       this.state.history[
