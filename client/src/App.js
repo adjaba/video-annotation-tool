@@ -144,7 +144,8 @@ class App extends Component {
                 this.state.json["database"][this.state.videoName],
                 this.state.segmentIndex
               ]
-            ]
+            ],
+            historyIndex: 0
           });
         } else {
           this.setState({
@@ -375,7 +376,7 @@ class App extends Component {
         0,
         this.state.history.length - this.state.historyIndex
       ),
-      { $push: [[metadata, segmentIndex]] }
+      { $push: [[metadata, newIndex]] }
     );
     history = history.slice(Math.max(history.length - 20, 0));
 
@@ -431,17 +432,7 @@ class App extends Component {
         }
       }
     );
-    console.log(
-      this.state.history[
-        this.state.history.length - 1 - this.state.historyIndex
-      ][0]["annotations"],
-      metadata
-    );
-    // this.setState({
-    //   segmentIndex: newIndex,
-    //   segmentStart: segmentStart,
-    //   segmentEnd: videoEnd,
-    // });
+
     this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
   }
 
@@ -451,7 +442,7 @@ class App extends Component {
     this.setState({
       historyIndex: historyIndex,
       segmentIndex: this.state.history[
-        this.state.history.length - 1 - this.state.historyIndex
+        this.state.history.length - 1 - historyIndex
       ][1]
     });
   }
@@ -462,7 +453,7 @@ class App extends Component {
     this.setState({
       historyIndex: historyIndex,
       segmentIndex: this.state.history[
-        this.state.history.length - 1 - this.state.historyIndex
+        this.state.history.length - 1 - historyIndex
       ][1]
     });
   }
@@ -648,6 +639,7 @@ class App extends Component {
   }
 
   renderEvents() {
+    console.log(this.state.history);
     return this.state.history.length > 0
       ? "annotations" in
         this.state.history[
@@ -715,6 +707,8 @@ class App extends Component {
           this.state.history.length - 1 - this.state.historyIndex
         ][0]
       : null;
+
+    console.log("SI", this.state.segmentIndex, editReady);
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <GlobalHotKeys keyMap={keyMap} handlers={this.handlers} />
