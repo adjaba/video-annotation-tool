@@ -109,6 +109,7 @@ class App extends Component {
     this.undo = this.undo.bind(this);
     this.redo = this.redo.bind(this);
     this.addEvent = this.addEvent.bind(this);
+    this.deleteEvent = this.deleteEvent.bind(this);
   }
 
   handlers = {
@@ -436,6 +437,20 @@ class App extends Component {
     this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
   }
 
+  deleteEvent(segmentIndex) {
+    var metadata = update(
+      this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][0],
+      {
+        annotations: {
+          $splice: [[segmentIndex, 1]]
+        }
+      }
+    );
+
+    this.saveMetadata(metadata, null, null, null);
+  }
   undo() {
     var historyIndex = this.state.historyIndex;
     historyIndex = Math.min(this.state.history.length - 1, historyIndex + 1);
@@ -868,6 +883,17 @@ class App extends Component {
                 <Header size="large" style={{ padding: "5px 10px" }}>
                   Event {this.state.segmentIndex}
                 </Header>
+                <Button
+                  negative
+                  icon
+                  labelPosition="left"
+                  onClick={() => this.deleteEvent(this.state.segmentIndex)}
+                  disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
+                >
+                  {" "}
+                  <Icon name="remove circle" size="small" />
+                  Delete Event
+                </Button>
               </div>
               {/* <Grid columns = {3} divided style={{
                   display: "flex",
