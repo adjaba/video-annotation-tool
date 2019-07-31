@@ -125,16 +125,18 @@ class App extends Component {
       // if video and json exists
       if (this.state.videoName && this.state.json) {
         // if video and json match
+        console.log("json and video present and change detected");
         if (
           Object.keys(this.state.json["database"]).indexOf(
             this.state.videoName
           ) >= 0
         ) {
+          console.log("initializing");
+          console.log(
+            "fps ",
+            this.state.json["database"][this.state.videoName]["fps"]
+          );
           this.setState({
-            videoEnd: secsToFrame(
-              this.state.videoEndSecs,
-              this.state.json["database"][this.state.videoName]["fps"]
-            ),
             saved: true,
             visibleMenu: true,
             history: [
@@ -335,19 +337,55 @@ class App extends Component {
     myPlayer.play();
   }
 
-  saveMetadata(metadata) {
+  saveMetadata(
+    metadata,
+    segmentIndex = this.state.segmentIndex,
+    segmentStart = this.state.segmentStart,
+    segmentEnd = this.state.segmentEnd
+  ) {
+    // var sort =
+    metadata = update(metadata, {
+      annotations: {
+        $apply: arr =>
+          arr.sort(
+            (a, b) =>
+              a["segment"][0] - b["segment"][0] ||
+              a["segment"][1] - b["segment"][1]
+          )
+      }
+    });
+    var newIndex = metadata["annotations"].reduce((acc, curr, index) => {
+      if (curr["segmentIndex"] === segmentIndex) {
+        acc.push(index);
+      }
+      return acc;
+    }, [])[0];
+    metadata = update(metadata, {
+      annotations: {
+        $apply: arr => {
+          return arr.map((event, index) => {
+            return update(event, { segmentIndex: { $set: index } });
+          });
+        }
+      }
+    });
+    console.log(newIndex, metadata);
     var history = update(
       this.state.history.slice(
         0,
         this.state.history.length - this.state.historyIndex
       ),
-      { $push: [[metadata, this.state.segmentIndex]] }
+      { $push: [[metadata, segmentIndex]] }
     );
     history = history.slice(Math.max(history.length - 20, 0));
 
     this.setState({
+      saved: true,
       history: history,
-      historyIndex: 0
+      historyIndex: 0,
+      segmentIndex: newIndex,
+      segmentStart: segmentStart,
+      segmentEnd: segmentEnd
     });
   }
 
@@ -355,6 +393,21 @@ class App extends Component {
     const newIndex = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
     ][0]["annotations"].length;
+
+    const videoEnd = secsToFrame(
+      this.state.videoEndSecs,
+      this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][0]["fps"]
+    );
+
+    const segmentStart = Math.min(
+      this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][0]["annotations"][newIndex - 1]["segment"][1] + 1,
+      videoEnd
+    );
+
     var metadata = update(
       this.state.history[
         this.state.history.length - 1 - this.state.historyIndex
@@ -366,7 +419,7 @@ class App extends Component {
               segmentIndex: newIndex,
               labelEvent: null,
               labelEventIndex: null,
-              segment: [0, this.state.videoEnd],
+              segment: [segmentStart, videoEnd],
               labelScene: [],
               labelSceneIndex: [],
               numberOfScenes: 0,
@@ -384,10 +437,12 @@ class App extends Component {
       ][0]["annotations"],
       metadata
     );
-    this.saveMetadata(metadata);
-    this.setState({
-      segmentIndex: newIndex
-    });
+    // this.setState({
+    //   segmentIndex: newIndex,
+    //   segmentStart: segmentStart,
+    //   segmentEnd: videoEnd,
+    // });
+    this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
   }
 
   undo() {
@@ -413,20 +468,34 @@ class App extends Component {
   }
 
   saveVideoPreview() {
-    var metadata = update(
-      this.state.history[
-        this.state.history.length - 1 - this.state.historyIndex
-      ][0],
-      {
-        annotations: {
-          [this.state.segmentIndex]: {
-            segment: {
-              $set: [this.state.segmentStart, this.state.segmentEnd]
-            }
+    if (this.state.segmentEnd < this.state.segmentStart) {
+      alert("End frame cannot be smaller than start frame");
+      return;
+    }
+
+    var currentMetadata = this.state.history[
+      this.state.history.length - 1 - this.state.historyIndex
+    ][0];
+
+    // if nothing changed don't do anything
+    if (
+      currentMetadata["annotations"][this.state.segmentIndex]["segment"][0] ===
+        this.state.segmentStart &&
+      currentMetadata["annotations"][this.state.segmentIndex]["segment"][1] ===
+        this.state.segmentEnd
+    ) {
+      return;
+    }
+
+    var metadata = update(currentMetadata, {
+      annotations: {
+        [this.state.segmentIndex]: {
+          segment: {
+            $set: [this.state.segmentStart, this.state.segmentEnd]
           }
         }
       }
-    );
+    });
     this.saveMetadata(metadata);
   }
 
@@ -886,7 +955,10 @@ class App extends Component {
                       frame={
                         editReady
                           ? this.state.segmentEnd
-                          : this.state.videoEnd || 0
+                          : secsToFrame(
+                              this.state.videoEndSecs,
+                              currentMetadata ? currentMetadata["fps"] : 0
+                            ) || 0
                       }
                       onChange={this.videoPreviewChange}
                       fps={currentMetadata ? currentMetadata["fps"] : null}
