@@ -19,7 +19,8 @@ import {
   Grid,
   Dimmer,
   Segment,
-  Dropdown
+  Dropdown,
+  Divider
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
@@ -869,7 +870,6 @@ class App extends Component {
               flexDirection: "column",
               width: "100%",
               backgroundColor: "#fff",
-              overflowX: "auto",
               flex: 1
             }}
           >
@@ -879,22 +879,39 @@ class App extends Component {
               style={{ height: "100%" }}
             >
               <Dimmer active={active} content={content} />
-              <div style={{ display: "block" }}>
-                <Header size="large" style={{ padding: "5px 10px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  height: "38px",
+                  width: "100%",
+                  borderTop: "1px #222426"
+                }}
+              >
+                <Header
+                  as="h4"
+                  divider
+                  floated="left"
+                  size="large"
+                  style={{ padding: "5px 10px" }}
+                >
                   Event {this.state.segmentIndex}
                 </Header>
+                <div style={{ flex: 1 }} />
                 <Button
                   negative
+                  size="small"
                   icon
                   labelPosition="left"
                   onClick={() => this.deleteEvent(this.state.segmentIndex)}
                   disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
+                  style={{ float: "right", margin: "5px 10px" }}
                 >
                   {" "}
                   <Icon name="remove circle" size="small" />
                   Delete Event
                 </Button>
               </div>
+              <Divider style={{ margin: 0 }} />
               {/* <Grid columns = {3} divided style={{
                   display: "flex",
                   flex: 1,
@@ -909,6 +926,7 @@ class App extends Component {
                   flexWrap: "wrap",
                   alignItems: "center",
                   overflowY: "auto",
+                  overflowX: "auto",
                   height: "calc(100vh - 494px)",
                   alignContent: "flex-start"
                 }}
