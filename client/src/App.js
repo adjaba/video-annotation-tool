@@ -491,6 +491,9 @@ class App extends Component {
       currentMetadata["annotations"][this.state.segmentIndex]["segment"][1] ===
         this.state.segmentEnd
     ) {
+      this.setState({
+        saved: true
+      });
       return;
     }
 
@@ -510,7 +513,7 @@ class App extends Component {
     // TODO: check if saved right now
     if (!this.state.saved) {
       const r = window.confirm(
-        "You have unsaved changes. Click OK to export the last saved version. Click cancel to cancel export."
+        "You may have unsaved changes. Click OK to export the last saved version. Click cancel to cancel export."
       );
       if (!r) return;
     }
@@ -532,7 +535,7 @@ class App extends Component {
     dlAnchorElem.setAttribute("href", dataStr);
 
     // tempLink.href = jsonURL;
-    dlAnchorElem.setAttribute("download", "changed.json");
+    dlAnchorElem.setAttribute("download", this.state.jsonName + "changed.json");
     dlAnchorElem.click();
   }
 
@@ -746,7 +749,7 @@ class App extends Component {
             Events
             <Icon
               size="small"
-              name="close"
+              name="window close outline"
               style={{ float: "right", marginRight: 0 }}
               onClick={() => this.setState({ visibleMenu: false })}
             />
@@ -793,14 +796,25 @@ class App extends Component {
             size="large"
             name="bars"
             onClick={() => this.setState({ visibleMenu: true })}
-            style={{ marginRight: 0 }}
+            style={{ marginRight: 0, marginBottom: "10px" }}
           />
+          <Button
+            size="small"
+            icon
+            positive
+            onClick={this.addEvent}
+            disabled={Object.keys(this.state.history).length === 0}
+            style={{ marginRight: 0, marginBottom: "10px" }}
+          >
+            <Icon name="add" />
+          </Button>
           <div style={{ display: "flex", flex: 1 }}></div>
           <Button
             size="small"
             icon
             onClick={this.export}
             disabled={Object.keys(this.state.history).length === 0}
+            style={{ marginRight: 0 }}
           >
             <Icon name="download" />
           </Button>
