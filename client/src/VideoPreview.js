@@ -39,6 +39,9 @@ export default class VideoPreview extends Component {
   }
 
   handleChange = event => {
+    if (event.target.value > secsToFrame(this.props.end, this.props.fps)) {
+      alert("Inputted frame bigger than last frame");
+    }
     var player = videojs.getPlayer(this.state.id);
     player.currentTime(frameToSecs(event.target.value, this.props.fps));
     this.props.onChange(parseInt(event.target.value), this.props.name);
@@ -64,7 +67,7 @@ export default class VideoPreview extends Component {
   };
 
   componentWillUnmount() {
-    console.log("unmounting videopreview", this.state.id);
+    // console.log("unmounting videopreview", this.state.id);
   }
 
   render() {

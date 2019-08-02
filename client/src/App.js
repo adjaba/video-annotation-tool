@@ -59,6 +59,8 @@ import { callbackify } from "util";
 // })()
 
 var URL = window.URL || window.webkitURL;
+// var mi = require('js/mediainfo.js');
+var processing = false;
 
 var videoJsOptions = {
   autoplay: true,
@@ -111,6 +113,8 @@ class App extends Component {
     this.redo = this.redo.bind(this);
     this.addEvent = this.addEvent.bind(this);
     this.deleteEvent = this.deleteEvent.bind(this);
+    this.deleteEventFromSidebar = this.deleteEventFromSidebar.bind(this);
+    // this.parseFile = this.parseFile.bind(this);
   }
 
   handlers = {
@@ -225,8 +229,66 @@ class App extends Component {
         videoEndSecs: player.duration()
       });
     });
+
+    // this.parseFile(file);
     // console.log(videojs.getPlayer("videoJSEnd"));
   }
+
+  // parseFile(file) {
+  //   if (processing) {
+  //     return;
+  //   }
+  //   processing = true;
+
+  //   var fileSize = file.size, offset = 0, state = 0, seekTo = -1, seek = null;
+
+  //   mi.open_buffer_init(fileSize, offset);
+
+  //   var processChunk = function(e) {
+  //     var l;
+  //     if (e.target.error === null) {
+  //       var chunk = new Uint8Array(e.target.result);
+  //       l = chunk.length;
+  //       state = mi.open_buffer_continue(chunk, l);
+
+  //       var seekTo = -1;
+  //       var seekToLow = mi.open_buffer_continue_goto_get_lower();
+  //       var seekToHigh = mi.open_buffer_continue_goto_get_upper();
+
+  //       if (seekToLow == -1 && seekToHigh == -1) {
+  //         seekTo = -1;
+  //       } else if (seekToLow < 0) {
+  //         seekTo = seekToLow + 4294967296 + (seekToHigh * 4294967296);
+  //       } else {
+  //         seekTo = seekToLow + (seekToHigh * 4294967296);
+  //       }
+
+  //       if(seekTo === -1){
+  //         offset += l;
+  //       }else{
+  //         offset = seekTo;
+  //         mi.open_buffer_init(fileSize, seekTo);
+  //       }
+  //       chunk = null;
+  //     } else {
+  //       var msg = 'An error happened reading your file!';
+  //       console.err(msg, e.target.error);
+  //       processing = false;
+  //       alert(msg);
+  //       return;
+  //     }
+  //     // bit 4 set means finalized
+  //     if (state&0x08) {
+  //       var result = mi.inform();
+  //       mi.close();
+  //       // addResult(file.name, result);
+  //       console.log(result);
+  //       processing = false;
+  //       return;
+  //     }
+  //     seek(l);
+  //   };
+  // }
 
   parseJSONInput(event) {
     if (!event.target.files[0]) {
@@ -303,7 +365,6 @@ class App extends Component {
   }
 
   jumpTo() {
-    console.log("here");
     var myPlayer = videojs.getPlayer("videoJS");
     var startInput = parseInt(document.getElementById("start").value);
     var endInput = parseInt(document.getElementById("end").value);
@@ -323,12 +384,10 @@ class App extends Component {
       ) || myPlayer.duration();
 
     myPlayer.currentTime(start);
-    console.log(myPlayer);
 
     if (end > start) {
       myPlayer.on("timeupdate", function(e) {
         if (myPlayer.currentTime() >= end) {
-          console.log("paused", myPlayer.currentTime(), end);
           myPlayer.pause();
           myPlayer.off("timeupdate");
         }
@@ -340,13 +399,24 @@ class App extends Component {
     myPlayer.play();
   }
 
+  /**
+   * saveMetadata - sort annotations in metadata and appropriately maintain history (last 20)
+   * @param {*} metadata - metadata to be sorted and added onto history
+   * @param {*} segmentIndex - segmentIndex is the current index of the event we want after save (for sorting in add event and time change)
+   * @param {*} segmentStart - segmentStart is the start frame for the event we want after save
+   * @param {*} segmentEnd - segmentEnd is the end frame for the event we want after save
+   *
+   * segmentIndex, segmentStart, segmentEnd used to move focus to a different event
+   *  for addEvent - this is so that when addEvent is clicked we see the new event ready to be edited
+   *  for deleteEvent - this is so that when we delete an event we go back to empty slate and select a new event for editing
+   */
   saveMetadata(
     metadata,
     segmentIndex = this.state.segmentIndex,
     segmentStart = this.state.segmentStart,
     segmentEnd = this.state.segmentEnd
   ) {
-    // var sort =
+    // sorting metadata by time
     metadata = update(metadata, {
       annotations: {
         $apply: arr =>
@@ -357,12 +427,18 @@ class App extends Component {
           )
       }
     });
-    var newIndex = metadata["annotations"].reduce((acc, curr, index) => {
-      if (curr["segmentIndex"] === segmentIndex) {
-        acc.push(index);
-      }
-      return acc;
-    }, [])[0];
+
+    // getting new index after sort
+    var newIndex = segmentIndex
+      ? metadata["annotations"].reduce((acc, curr, index) => {
+          if (curr["segmentIndex"] === segmentIndex) {
+            acc.push(index);
+          }
+          return acc;
+        }, [])[0]
+      : null;
+
+    // set segmentIndex so that it matches index in array
     metadata = update(metadata, {
       annotations: {
         $apply: arr => {
@@ -372,7 +448,8 @@ class App extends Component {
         }
       }
     });
-    console.log(newIndex, metadata);
+
+    // push this new metadata to history
     var history = update(
       this.state.history.slice(
         0,
@@ -380,6 +457,8 @@ class App extends Component {
       ),
       { $push: [[metadata, newIndex]] }
     );
+
+    // only keep the last 20 saved metadata
     history = history.slice(Math.max(history.length - 20, 0));
 
     this.setState({
@@ -392,6 +471,13 @@ class App extends Component {
     });
   }
 
+  /**
+   * addEvent
+   *
+   * adds new event at the end of event list
+   * default start frame is 1 more than end frame of last event in list
+   * default end frame is end of video
+   */
   addEvent() {
     const newIndex = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
@@ -404,12 +490,15 @@ class App extends Component {
       ][0]["fps"]
     );
 
-    const segmentStart = Math.min(
-      this.state.history[
-        this.state.history.length - 1 - this.state.historyIndex
-      ][0]["annotations"][newIndex - 1]["segment"][1] + 1,
-      videoEnd
-    );
+    const segmentStart =
+      newIndex < 1
+        ? 0
+        : Math.min(
+            this.state.history[
+              this.state.history.length - 1 - this.state.historyIndex
+            ][0]["annotations"][newIndex - 1]["segment"][1] + 1,
+            videoEnd
+          );
 
     var metadata = update(
       this.state.history[
@@ -438,6 +527,25 @@ class App extends Component {
     this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
   }
 
+  deleteEventFromSidebar(segmentIndex) {
+    if (segmentIndex === this.state.segmentIndex) {
+      this.deleteEvent(segmentIndex);
+    } else {
+      var metadata = update(
+        this.state.history[
+          this.state.history.length - 1 - this.state.historyIndex
+        ][0],
+        {
+          annotations: {
+            $splice: [[segmentIndex, 1]]
+          }
+        }
+      );
+
+      this.saveMetadata(metadata);
+    }
+  }
+
   deleteEvent(segmentIndex) {
     var metadata = update(
       this.state.history[
@@ -452,6 +560,7 @@ class App extends Component {
 
     this.saveMetadata(metadata, null, null, null);
   }
+
   undo() {
     var historyIndex = this.state.historyIndex;
     historyIndex = Math.min(this.state.history.length - 1, historyIndex + 1);
@@ -521,21 +630,20 @@ class App extends Component {
     var metadata = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
     ][0];
+
     var json = this.state.json;
     json["database"][this.state.videoName] = metadata;
 
-    console.log(json);
     var dataStr =
       "data:text/json;charset=utf-8," +
       encodeURIComponent(JSON.stringify(json, null, 2));
-    var dlAnchorElem = document.createElement("a");
-    // var data = new File([json], "filename.json", {type: 'text/json;charset=utf-8'});
-    // var jsonURL = URL.createObjectURL(data);
-    // var tempLink = document.createElement('a');
-    dlAnchorElem.setAttribute("href", dataStr);
 
-    // tempLink.href = jsonURL;
-    dlAnchorElem.setAttribute("download", this.state.jsonName + "changed.json");
+    var dlAnchorElem = document.createElement("a");
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute(
+      "download",
+      this.state.jsonName + "_changed.json"
+    );
     dlAnchorElem.click();
   }
 
@@ -658,7 +766,6 @@ class App extends Component {
   }
 
   renderEvents() {
-    console.log(this.state.history);
     return this.state.history.length > 0
       ? "annotations" in
         this.state.history[
@@ -687,6 +794,10 @@ class App extends Component {
                   segmentActions: prop["labelAction"],
                   segmentScenes: prop["labelScene"]
                 });
+              }}
+              onDeleteClick={e => {
+                this.deleteEventFromSidebar(prop["segmentIndex"]);
+                e.stopPropagation();
               }}
             />
           ))
@@ -727,7 +838,10 @@ class App extends Component {
         ][0]
       : null;
 
-    console.log("SI", this.state.segmentIndex, editReady);
+    const thereAreEvents = currentMetadata
+      ? currentMetadata["annotations"].length > 0
+      : false;
+
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <GlobalHotKeys keyMap={keyMap} handlers={this.handlers} />
@@ -749,7 +863,7 @@ class App extends Component {
             Events
             <Icon
               size="small"
-              name="window close outline"
+              name="angle left"
               style={{ float: "right", marginRight: 0 }}
               onClick={() => this.setState({ visibleMenu: false })}
             />
@@ -952,7 +1066,9 @@ class App extends Component {
                     flexDirection: "column",
                     flex: 1,
                     width: "100%",
-                    paddingBottom: "5px"
+                    paddingBottom: "5px",
+                    height: "100%",
+                    borderBottom: "1px solid #ddd"
                   }}
                 >
                   <div style={{ display: "block", padding: "5px 10px" }}>
@@ -970,7 +1086,7 @@ class App extends Component {
                         })
                       )}
                       defaultValue={
-                        editReady
+                        editReady && thereAreEvents
                           ? currentMetadata["annotations"][
                               this.state.segmentIndex
                             ]["labelEvent"]
@@ -1049,18 +1165,26 @@ class App extends Component {
                 </div>
                 {/* </Grid.Column>
                 <Grid.Column> */}
-                <div style={{ display: "flex", flex: 1, flexDirection: "row" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flex: 1,
+                    flexDirection: "row",
+                    height: "100%",
+                    borderLeft: "1px solid #ddd"
+                  }}
+                >
                   <ScenesActions
                     key={this.state.segmentIndex + "scenes"}
                     mode="scenes"
                     items={
-                      editReady
+                      editReady && thereAreEvents
                         ? currentMetadata["annotations"][
                             this.state.segmentIndex
                           ]["labelScene"].map(item => item.toLowerCase())
                         : []
                     }
-                    style={{ flex: 2 }}
+                    style={{ flex: 2, borderRight: "1px solid #ddd" }}
                     onChange={this.setScenesActions}
                   />
                   {/* </Grid.Column>
@@ -1069,7 +1193,7 @@ class App extends Component {
                     key={this.state.segmentIndex + "actions"}
                     mode="actions"
                     items={
-                      editReady
+                      editReady && thereAreEvents
                         ? currentMetadata["annotations"][
                             this.state.segmentIndex
                           ]["labelAction"].map(item => item.toLowerCase())

@@ -107,3 +107,15 @@ ul {
     min-width: max-content;
   }
 }
+
+.unfixed {
+  background-color: #d3e0f0;
+}
+
+.unfixed > *:first-child {
+  border-top: 1px solid #acc4e0;
+}
+
+.unfixed > * {
+  border-bottom: 1px solid #acc4e0;
+}
