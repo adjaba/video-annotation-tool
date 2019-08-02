@@ -19,7 +19,6 @@ export default class VideoPlayer extends React.Component {
   componentWillUnmount() {
     if (this.player) {
       this.player.dispose();
-      console.log("disposed");
     }
   }
 

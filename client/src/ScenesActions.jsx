@@ -38,7 +38,7 @@ export default class ScenesActions extends React.Component {
         }}
       >
         <div className="col-sm-6">
-          <Header size="small">
+          <Header size="small" style={{ height: "30px" }}>
             {this.props.mode.charAt(0).toUpperCase() + this.props.mode.slice(1)}
           </Header>
           <Sortable
@@ -51,7 +51,7 @@ export default class ScenesActions extends React.Component {
                 put: true
               }
             }}
-            className="block-list"
+            className="block-list unfixed"
             tag="ul"
             onChange={(order, sortable, evt) => {
               this.props.onChange(order, this.props.mode);

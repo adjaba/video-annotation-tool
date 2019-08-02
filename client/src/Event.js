@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { events, scenes, actions } from "./utils";
-import { Header, List, Button, Label } from "semantic-ui-react";
+import { Header, List, Button, Label, Icon } from "semantic-ui-react";
 
 export default class Event extends Component {
   constructor(props) {
@@ -18,7 +18,8 @@ export default class Event extends Component {
       numberOfScenes,
       labelScenes,
       style,
-      onClick
+      onClick,
+      onDeleteClick
     } = this.props;
 
     return (
@@ -32,13 +33,26 @@ export default class Event extends Component {
           }}
           onClick={onClick}
         >
-          <Header size="small" style={{ display: "block" }}>
-            <Label color="red" circular>
-              {index}
-            </Label>
-            {labelEvent}
-          </Header>
-          Start Frame: {segment[0]} <br /> End Frame: {segment[1]}
+          <div style={{ display: "flex", width: "100%" }}>
+            <Header size="small" floated="left">
+              <Label color="blue" circular>
+                {index}
+              </Label>
+              {labelEvent}
+            </Header>
+            <div style={{ flex: 1 }} />
+            <Button
+              icon="remove circle"
+              color="red"
+              size="medium"
+              compact
+              onClick={this.props.onDeleteClick}
+              style={{ marginRight: 0, fontSize: "10px" }}
+            />
+          </div>
+          <div style={{ display: "block" }}>
+            Start Frame: {segment[0]} <br /> End Frame: {segment[1]}
+          </div>
           {/* Segment is {segment} . labelEvent {labelEvent} . numberOfActions{" "}
           {numberOfActions} . labelActionIndex {labelActionIndex} .
           numberOfScenes {numberOfScenes} . labelScenes {labelScenes} . */}
