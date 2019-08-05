@@ -1024,14 +1024,6 @@ class App extends Component {
                   padding: "5px"
                 }}
               >
-                <Button
-                  disabled={!currentMetadata}
-                  onClick={() => {
-                    videojs.getPlayer("videoJS").trigger("toggleClick");
-                  }}
-                >
-                  Play | Pause and fetch
-                </Button>
                 {/* {"CURRENT TIME:"}{this.state.currentTime}<br/> */}
                 <h4 style={{ margin: "5px" }}>
                   Current Frame:
@@ -1058,6 +1050,7 @@ class App extends Component {
                       )
                     });
                   }}
+                  style={{ marginBottom: "5px" }}
                 >
                   Send to start
                 </Button>
@@ -1190,7 +1183,7 @@ class App extends Component {
                       flex: 0,
                       flexDirection: "row",
                       height: "100%",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       justifyContent: "space-around"
                     }}
                   >
@@ -1223,35 +1216,31 @@ class App extends Component {
                       src={this.state.videoSrc}
                       end={this.state.videoEndSecs}
                     />
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      flex: 0,
-                      flexDirection: "row",
-                      height: "100%",
-                      alignItems: "center",
-                      justifyContent: "space-around"
-                    }}
-                  >
-                    <Button
-                      content="Play section"
-                      icon="play"
-                      labelPosition="left"
-                      onClick={this.playSection}
-                    />
-                    <Button
-                      icon
-                      primary
-                      labelPosition="left"
-                      onClick={e => {
-                        this.saveVideoPreview();
+                    <div
+                      style={{
+                        display: "flex",
+                        flex: 0,
+                        flexDirection: "column"
                       }}
                     >
-                      <Icon name="save" />
-                      Apply frames
-                    </Button>
+                      <Button
+                        content="Play section"
+                        icon="play"
+                        labelPosition="left"
+                        onClick={this.playSection}
+                      />
+                      <Button
+                        icon
+                        primary
+                        labelPosition="left"
+                        onClick={e => {
+                          this.saveVideoPreview();
+                        }}
+                      >
+                        <Icon name="save" />
+                        Apply frames
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 {/* </Grid.Column>
