@@ -84,6 +84,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      currentTime: 0,
       videoName: null,
       saved: true,
       videoSrc: null,
@@ -230,6 +231,11 @@ class App extends Component {
       });
     });
 
+    player.on("pause", () => {
+      this.setState({
+        currentTime: player.currentTime()
+      });
+    });
     // this.parseFile(file);
     // console.log(videojs.getPlayer("videoJSEnd"));
   }
@@ -328,7 +334,11 @@ class App extends Component {
     });
   }
 
-  // play section if end > start
+  /**
+   * playSection - plays video from this.state.segmentStart to this.state.segmentEnd if the latter is bigger than the former
+   */
+
+  //TODO: figure out whether document.getElementById("start") can be replaced by this.state.segmentStart, etc.
   playSection() {
     var myPlayer = videojs.getPlayer("videoJS");
     var startInput = parseInt(document.getElementById("start").value);
@@ -364,6 +374,9 @@ class App extends Component {
     }
   }
 
+  /**
+   * jumpTo - plays video from this.state.segmentStart to this.state.segmentEnd if the latter is bigger than the former
+   */
   jumpTo() {
     var myPlayer = videojs.getPlayer("videoJS");
     var startInput = parseInt(document.getElementById("start").value);
@@ -967,28 +980,106 @@ class App extends Component {
               width: "100%",
               flexDirection: "column",
               alignItems: "center",
-              paddingBottom: "10px"
+              paddingBottom: "10px",
+              height: "454px"
             }}
           >
-            <input
-              id="input_video"
-              type="file"
-              accept="video/*"
-              onChange={e => {
-                // this.setState({ video: e.target.value });
-                this.playSelectedFile(e);
-              }}
-            />
-            <input
-              id="input_json"
-              type="file"
-              accept=".json, application/json"
-              onChange={e => {
-                this.parseJSONInput(e);
-              }}
-            />
+            <div style={{ display: "inline" }}>
+              <label for="input_video">Video:</label>
+              <input
+                id="input_video"
+                type="file"
+                accept="video/*"
+                onChange={e => {
+                  // this.setState({ video: e.target.value });
+                  this.playSelectedFile(e);
+                }}
+              />
+            </div>
+            <div style={{ display: "inline" }}>
+              <label for="input_json">JSON:</label>
+              <input
+                id="input_json"
+                type="file"
+                accept=".json, application/json"
+                onChange={e => {
+                  this.parseJSONInput(e);
+                }}
+              />
+            </div>
             {/* below this.state.video should be a prop passed on from project page or maybe not*/}
-            <VideoPlayer id="videoJS" {...videoJsOptions} />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center"
+              }}
+            >
+              <VideoPlayer id="videoJS" {...videoJsOptions} />
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  backgroundColor: "#fff",
+                  padding: "5px"
+                }}
+              >
+                <Button
+                  disabled={!currentMetadata}
+                  onClick={() => {
+                    videojs.getPlayer("videoJS").trigger("toggleClick");
+                  }}
+                >
+                  Play | Pause and fetch
+                </Button>
+                {/* {"CURRENT TIME:"}{this.state.currentTime}<br/> */}
+                <h4 style={{ margin: "5px" }}>
+                  Current Frame:
+                  {currentMetadata
+                    ? secsToFrame(
+                        this.state.currentTime,
+                        currentMetadata["fps"]
+                      )
+                    : 0}
+                </h4>
+                {/*                   
+                <br/> */}
+                <Button
+                  primary
+                  compact
+                  disabled={!editReady}
+                  onClick={() => {
+                    if (!currentMetadata) return;
+                    this.setState({
+                      saved: false,
+                      segmentStart: secsToFrame(
+                        this.state.currentTime,
+                        currentMetadata["fps"]
+                      )
+                    });
+                  }}
+                >
+                  Send to start
+                </Button>
+                <Button
+                  compact
+                  color="grey"
+                  disabled={!editReady}
+                  onClick={() => {
+                    if (!currentMetadata) return;
+                    this.setState({
+                      saved: false,
+                      segmentEnd: secsToFrame(
+                        this.state.currentTime,
+                        currentMetadata["fps"]
+                      )
+                    });
+                  }}
+                >
+                  Send to end
+                </Button>
+              </div>
+            </div>
           </div>
           {/* <Grid stackable columns = {2}>
             <Grid.Column> */}
@@ -1153,13 +1244,14 @@ class App extends Component {
                     />
                     <Button
                       icon
+                      primary
                       labelPosition="left"
                       onClick={e => {
                         this.saveVideoPreview();
                       }}
                     >
                       <Icon name="save" />
-                      Save frames
+                      Apply frames
                     </Button>
                   </div>
                 </div>

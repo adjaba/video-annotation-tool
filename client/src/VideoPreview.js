@@ -38,12 +38,18 @@ export default class VideoPreview extends Component {
     }
   }
 
+  componentDidUpdate() {
+    if (!this.props.frame) return;
+    var player = videojs.getPlayer(this.state.id);
+    player.currentTime(frameToSecs(this.props.frame, this.props.fps));
+  }
+
   handleChange = event => {
     if (event.target.value > secsToFrame(this.props.end, this.props.fps)) {
       alert("Inputted frame bigger than last frame");
     }
-    var player = videojs.getPlayer(this.state.id);
-    player.currentTime(frameToSecs(event.target.value, this.props.fps));
+    // var player = videojs.getPlayer(this.state.id);
+    // player.currentTime(frameToSecs(event.target.value, this.props.fps));
     this.props.onChange(parseInt(event.target.value), this.props.name);
 
     // var video = document.getElementById('videoPlay'),

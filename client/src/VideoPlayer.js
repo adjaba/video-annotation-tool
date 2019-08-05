@@ -1,5 +1,6 @@
 import React from "react";
 import videojs from "video.js";
+import { playbackRates } from "./utils";
 
 export default class VideoPlayer extends React.Component {
   constructor(props) {
@@ -7,12 +8,24 @@ export default class VideoPlayer extends React.Component {
   }
   componentDidMount() {
     // instantiate Video.js
-    this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
-      this.getChild("bigPlayButton").on("click", function(event) {
-        event.preventDefault();
-        this.play();
-      });
-    });
+    this.player = videojs(
+      this.videoNode,
+      { ...this.props, playbackRates: playbackRates },
+      function onPlayerReady() {
+        this.getChild("bigPlayButton").on("click", function(event) {
+          event.preventDefault();
+          this.play();
+        });
+
+        this.on("toggleClick", function() {
+          if (this.paused()) {
+            this.play();
+          } else {
+            this.pause();
+          }
+        });
+      }
+    );
   }
 
   // destroy player on unmount

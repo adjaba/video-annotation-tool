@@ -116,3 +116,5 @@ export async function extractFramesFromVideo(playerID, fps) {
     resolve(frames);
   });
 }
+
+export const playbackRates = [1, 1.5, 3, 5];
