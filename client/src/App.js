@@ -985,7 +985,7 @@ class App extends Component {
             }}
           >
             <div style={{ display: "inline" }}>
-              <label for="input_video">Video:</label>
+              <label htmlFor="input_video">Video:</label>
               <input
                 id="input_video"
                 type="file"
@@ -997,7 +997,7 @@ class App extends Component {
               />
             </div>
             <div style={{ display: "inline" }}>
-              <label for="input_json">JSON:</label>
+              <label htmlFor="input_json">JSON:</label>
               <input
                 id="input_json"
                 type="file"
@@ -1108,7 +1108,6 @@ class App extends Component {
               >
                 <Header
                   as="h4"
-                  divider
                   floated="left"
                   size="large"
                   style={{ padding: "5px 10px" }}

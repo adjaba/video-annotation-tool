@@ -39,7 +39,12 @@ export default class VideoPreview extends Component {
   }
 
   componentDidUpdate() {
-    if (!this.props.frame) return;
+    if (
+      (!this.props.frame && this.props.frame !== 0) ||
+      !isFinite(this.props.frame) ||
+      !this.props.fps
+    )
+      return;
     var player = videojs.getPlayer(this.state.id);
     player.currentTime(frameToSecs(this.props.frame, this.props.fps));
   }
@@ -48,6 +53,7 @@ export default class VideoPreview extends Component {
     if (event.target.value > secsToFrame(this.props.end, this.props.fps)) {
       alert("Inputted frame bigger than last frame");
     }
+    console.log("update");
     // var player = videojs.getPlayer(this.state.id);
     // player.currentTime(frameToSecs(event.target.value, this.props.fps));
     this.props.onChange(parseInt(event.target.value), this.props.name);
@@ -96,7 +102,7 @@ export default class VideoPreview extends Component {
           onChange={e => {
             this.handleChange(e);
           }}
-          value={this.props.frame}
+          value={isFinite(this.props.frame) ? this.props.frame : 0}
           min={0}
           max={secsToFrame(this.props.end, this.props.fps)}
         ></Input>
@@ -106,7 +112,11 @@ export default class VideoPreview extends Component {
           type="number"
           id={this.props.name + "time"}
           disabled={true}
-          value={parseFloat(frameToSecs(this.props.frame, this.props.fps))}
+          value={
+            this.props.fps
+              ? parseFloat(frameToSecs(this.props.frame, this.props.fps))
+              : 0
+          }
           key={this.props.name + "time"}
           min={0}
           max={secsToFrame(this.props.end, this.props.fps)}
