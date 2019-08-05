@@ -19,6 +19,7 @@ import {
   Grid,
   Dimmer,
   Segment,
+  Input,
   Dropdown,
   Divider
 } from "semantic-ui-react";
@@ -984,9 +985,17 @@ class App extends Component {
               height: "454px"
             }}
           >
-            <div style={{ display: "inline" }}>
-              <label htmlFor="input_video">Video:</label>
+            <div
+              style={{ display: "flex", flexDisplay: "row", padding: "5px" }}
+            >
+              <Button
+                primary
+                onClick={() => document.getElementById("input_video").click()}
+              >
+                Upload video
+              </Button>
               <input
+                style={{ display: "none" }}
                 id="input_video"
                 type="file"
                 accept="video/*"
@@ -995,10 +1004,14 @@ class App extends Component {
                   this.playSelectedFile(e);
                 }}
               />
-            </div>
-            <div style={{ display: "inline" }}>
-              <label htmlFor="input_json">JSON:</label>
+              <Button
+                color="grey"
+                onClick={() => document.getElementById("input_json").click()}
+              >
+                Upload JSON
+              </Button>
               <input
+                style={{ display: "none" }}
                 id="input_json"
                 type="file"
                 accept=".json, application/json"
@@ -1224,14 +1237,16 @@ class App extends Component {
                       }}
                     >
                       <Button
+                        primary
                         content="Play section"
                         icon="play"
                         labelPosition="left"
                         onClick={this.playSection}
+                        style={{ marginBottom: "5px" }}
                       />
                       <Button
+                        color="grey"
                         icon
-                        primary
                         labelPosition="left"
                         onClick={e => {
                           this.saveVideoPreview();
