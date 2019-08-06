@@ -445,14 +445,15 @@ class App extends Component {
     });
 
     // getting new index after sort
-    var newIndex = segmentIndex
-      ? metadata["annotations"].reduce((acc, curr, index) => {
-          if (curr["segmentIndex"] === segmentIndex) {
-            acc.push(index);
-          }
-          return acc;
-        }, [])[0]
-      : null;
+    var newIndex =
+      segmentIndex > 0 || segmentIndex === 0
+        ? metadata["annotations"].reduce((acc, curr, index) => {
+            if (curr["segmentIndex"] === segmentIndex) {
+              acc.push(index);
+            }
+            return acc;
+          }, [])[0]
+        : null;
 
     // set segmentIndex so that it matches index in array
     metadata = update(metadata, {
