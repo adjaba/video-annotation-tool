@@ -78,7 +78,8 @@ var videoPreviewOptions = {
 
 const keyMap = {
   UNDO: "ctrl+z",
-  REDO: ["ctrl+y", "shift+ctrl+z"]
+  REDO: ["ctrl+y", "shift+ctrl+z"],
+  SAVE: "ctrl+s"
 };
 
 class App extends Component {
@@ -121,7 +122,8 @@ class App extends Component {
 
   handlers = {
     UNDO: () => this.undo(),
-    REDO: () => this.redo()
+    REDO: () => this.redo(),
+    SAVE: () => this.saveVideoPreview()
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -662,6 +664,7 @@ class App extends Component {
   }
 
   setScenesActions(items, mode) {
+    console.log("triggered" + this.state.segmentIndex + mode);
     var metadata;
     if (mode === "scenes") {
       metadata = update(
@@ -813,6 +816,7 @@ class App extends Component {
                 this.deleteEventFromSidebar(prop["segmentIndex"]);
                 e.stopPropagation();
               }}
+              focus={this.state.segmentIndex}
             />
           ))
         : null
@@ -866,7 +870,7 @@ class App extends Component {
             padding: "1em",
             borderRight: "1px solid #ccc",
             height: "100%",
-            flex: 1,
+            flex: 3,
             maxWidth: 300,
             backgroundColor: "#fff",
             minWidth: "max-content",
@@ -949,8 +953,95 @@ class App extends Component {
         </div>
         <div
           style={{
+            display: editReady && thereAreEvents ? "flex" : "none",
+            flex: 8,
+            flexDirection: "column",
+            height: "100%",
+            borderLeft: "1px solid #ddd",
+            borderRight: "1px solid #ddd",
+            minWidth: "283px"
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              height: "38px",
+              width: "100%",
+              borderTop: "1px #222426"
+            }}
+          >
+            <Header
+              as="h4"
+              floated="left"
+              size="large"
+              style={{ padding: "5px 10px" }}
+            >
+              Event {this.state.segmentIndex}
+            </Header>
+            <div style={{ flex: 1 }} />
+            <Button
+              negative
+              size="small"
+              icon
+              labelPosition="left"
+              onClick={() => this.deleteEvent(this.state.segmentIndex)}
+              disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
+              style={{ float: "right", margin: "5px 10px" }}
+            >
+              {" "}
+              <Icon name="remove circle" size="small" />
+              Delete Event
+            </Button>
+            {/* <Button
+              size="small"
+              icon="eye"
+              labelPosition="left"
+              onClick={() => this.deleteEvent(this.state.segmentIndex)}
+              disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
+              style={{ float: "right", margin: "5px 10px" }}
+            >
+              {" "}
+              <Icon name="remove circle" size="small" />
+            </Button> */}
+          </div>
+          <ScenesActions
+            key={this.state.segmentIndex + "scenes"}
+            mode="scenes"
+            items={
+              editReady && thereAreEvents
+                ? currentMetadata["annotations"][this.state.segmentIndex][
+                    "labelScene"
+                  ].map(item => item.toLowerCase())
+                : []
+            }
+            style={{
+              flex: 1,
+              padding: "5px",
+              borderBottom: "1px solid #ddd",
+              borderTop: "1px solid #ddd"
+            }}
+            onChange={this.setScenesActions}
+          />
+          {/* </Grid.Column>
+          <Grid.Column> */}
+          <ScenesActions
+            key={this.state.segmentIndex + "actions"}
+            mode="actions"
+            items={
+              editReady && thereAreEvents
+                ? currentMetadata["annotations"][this.state.segmentIndex][
+                    "labelAction"
+                  ].map(item => item.toLowerCase())
+                : []
+            }
+            style={{ flex: 1, padding: "5px" }}
+            onChange={this.setScenesActions}
+          />
+        </div>
+        <div
+          style={{
             display: "flex",
-            flex: "8 1 0",
+            flex: "24 1 0",
             flexDirection: "column",
             height: "100%",
             backgroundColor: "#ddd",
@@ -1039,6 +1130,12 @@ class App extends Component {
               >
                 {/* {"CURRENT TIME:"}{this.state.currentTime}<br/> */}
                 <h4 style={{ margin: "5px" }}>
+                  Video Name: {this.state.videoName}
+                </h4>
+                <h4 style={{ margin: "5px" }}>
+                  JSON Name: {this.state.jsonName}
+                </h4>
+                <h4 style={{ margin: "5px" }}>
                   Current Frame:
                   {currentMetadata
                     ? secsToFrame(
@@ -1104,37 +1201,6 @@ class App extends Component {
               style={{ height: "100%" }}
             >
               <Dimmer active={active} content={content} />
-              <div
-                style={{
-                  display: "flex",
-                  height: "38px",
-                  width: "100%",
-                  borderTop: "1px #222426"
-                }}
-              >
-                <Header
-                  as="h4"
-                  floated="left"
-                  size="large"
-                  style={{ padding: "5px 10px" }}
-                >
-                  Event {this.state.segmentIndex}
-                </Header>
-                <div style={{ flex: 1 }} />
-                <Button
-                  negative
-                  size="small"
-                  icon
-                  labelPosition="left"
-                  onClick={() => this.deleteEvent(this.state.segmentIndex)}
-                  disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
-                  style={{ float: "right", margin: "5px 10px" }}
-                >
-                  {" "}
-                  <Icon name="remove circle" size="small" />
-                  Delete Event
-                </Button>
-              </div>
               <Divider style={{ margin: 0 }} />
               {/* <Grid columns = {3} divided style={{
                   display: "flex",
@@ -1151,7 +1217,7 @@ class App extends Component {
                   alignItems: "center",
                   overflowY: "auto",
                   overflowX: "auto",
-                  height: "calc(100vh - 494px)",
+                  height: "calc(100vh - 455px)",
                   alignContent: "flex-start"
                 }}
               >
@@ -1163,8 +1229,8 @@ class App extends Component {
                     flex: 1,
                     width: "100%",
                     paddingBottom: "5px",
-                    height: "100%",
-                    borderBottom: "1px solid #ddd"
+                    height: "100%"
+                    // borderBottom: "1px solid #ddd"
                   }}
                 >
                   <div style={{ display: "block", padding: "5px 10px" }}>
@@ -1193,7 +1259,7 @@ class App extends Component {
                   <div
                     style={{
                       display: "flex",
-                      flex: 0,
+                      flex: 1,
                       flexDirection: "row",
                       height: "100%",
                       alignItems: "flex-start",
@@ -1251,53 +1317,28 @@ class App extends Component {
                         onClick={e => {
                           this.saveVideoPreview();
                         }}
+                        style={{ marginBottom: "5px" }}
                       >
                         <Icon name="save" />
                         Apply frames
+                      </Button>
+                      <Button
+                        negative
+                        icon
+                        labelPosition="left"
+                        onClick={() =>
+                          this.deleteEvent(this.state.segmentIndex)
+                        }
+                        disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
+                      >
+                        <Icon name="remove circle" size="small" />
+                        Delete Event
                       </Button>
                     </div>
                   </div>
                 </div>
                 {/* </Grid.Column>
                 <Grid.Column> */}
-                <div
-                  style={{
-                    display: "flex",
-                    flex: 1,
-                    flexDirection: "row",
-                    height: "100%",
-                    borderLeft: "1px solid #ddd"
-                  }}
-                >
-                  <ScenesActions
-                    key={this.state.segmentIndex + "scenes"}
-                    mode="scenes"
-                    items={
-                      editReady && thereAreEvents
-                        ? currentMetadata["annotations"][
-                            this.state.segmentIndex
-                          ]["labelScene"].map(item => item.toLowerCase())
-                        : []
-                    }
-                    style={{ flex: 2, borderRight: "1px solid #ddd" }}
-                    onChange={this.setScenesActions}
-                  />
-                  {/* </Grid.Column>
-                  <Grid.Column> */}
-                  <ScenesActions
-                    key={this.state.segmentIndex + "actions"}
-                    mode="actions"
-                    items={
-                      editReady && thereAreEvents
-                        ? currentMetadata["annotations"][
-                            this.state.segmentIndex
-                          ]["labelAction"].map(item => item.toLowerCase())
-                        : []
-                    }
-                    style={{ flex: 3 }}
-                    onChange={this.setScenesActions}
-                  />
-                </div>
                 {/* </Grid.Column> */}
                 {/* </div> */}
               </div>

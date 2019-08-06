@@ -44,9 +44,8 @@ ul {
   max-width: 360px;
   background-color: #eee;
   border: 1px solid #ddd;
-  min-width: max-content;
-  height: calc(100vh - 510);
-  max-height: 360px;
+  /* height: calc(100vh - 510); */
+  height: auto;
   overflow-y: auto;
 }
 
@@ -101,12 +100,12 @@ ul {
   }
 } */
 
-@media screen and (min-width: 1150px) {
+/* @media screen and (min-width: 1150px) {
   .block-list {
     min-width: 105px;
     min-width: max-content;
   }
-}
+} */
 
 .unfixed {
   background-color: #d3e0f0;

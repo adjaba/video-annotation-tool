@@ -9,7 +9,10 @@ import { runInThisContext } from "vm";
 var videoPreviewOptions = {
   autoplay: false,
   preload: "auto",
-  height: 200
+  minWidth: "350px",
+  maxHeight: "320px",
+  width: "100%",
+  height: "100%"
 };
 
 export default class VideoPreview extends Component {
@@ -90,10 +93,16 @@ export default class VideoPreview extends Component {
           flexDirection: "column",
           alignItems: "center",
           padding: 5,
-          justifyContent: "space-around"
+          justifyContent: "space-around",
+          width: "100%",
+          height: "100%"
         }}
       >
-        <VideoPlayer id={this.state.id} {...videoPreviewOptions} />
+        <VideoPlayer
+          id={this.state.id}
+          {...videoPreviewOptions}
+          style={{ display: "flex", width: "100%", height: "100%" }}
+        />
         Frame
         <Input
           style={{ width: "100px" }}

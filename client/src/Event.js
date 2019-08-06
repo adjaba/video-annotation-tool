@@ -19,15 +19,16 @@ export default class Event extends Component {
       labelScenes,
       style,
       onClick,
-      onDeleteClick
+      onDeleteClick,
+      focus
     } = this.props;
 
     return (
-      <List.Item>
+      <List.Item style={{ backgroundColor: index === focus ? "#eee" : "#fff" }}>
         <div
           style={{
             flex: "0 0 auto",
-            padding: "5px",
+            margin: "5px",
             fontSize: "1.3em",
             ...style
           }}

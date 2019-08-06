@@ -33,48 +33,61 @@ export default class ScenesActions extends React.Component {
           flexDirection: "row",
           width: "100%",
           padding: "5px",
-          minWidth: "max-content",
-          ...this.props.style
+          ...this.props.style,
+          minHeight: 0
         }}
       >
-        <div className="col-sm-6">
-          <Header size="small" style={{ height: "30px" }}>
+        <div
+          className="col-sm-6"
+          style={{ flexDirection: "column", display: "flex" }}
+        >
+          <Header size="small" style={{ height: "30px", flex: 0 }}>
             {this.props.mode.charAt(0).toUpperCase() + this.props.mode.slice(1)}
           </Header>
-          <Sortable
-            options={{
-              animation: 150,
-              sort: true,
-              group: {
-                name: "clone1" + this.props.mode,
-                pull: false,
-                put: true
-              }
-            }}
-            className="block-list unfixed"
-            tag="ul"
-            onChange={(order, sortable, evt) => {
-              this.props.onChange(order, this.props.mode);
-            }}
-          >
-            {this.props.items.map((val, key) => (
-              <li key={key} data-id={val}>
-                {val}
-                <Icon
-                  className="deletecursor"
-                  name="delete"
-                  style={{ float: "right" }}
-                  onClick={() => {
-                    const items = this.props.items;
-                    items.splice(key, 1);
-                    this.props.onChange(items, this.props.mode);
-                  }}
-                ></Icon>
-              </li>
-            ))}
-          </Sortable>
+          <div style={{ overflowY: "auto" }}>
+            <Sortable
+              options={{
+                animation: 150,
+                sort: true,
+                group: {
+                  name: "clone1" + this.props.mode,
+                  pull: false,
+                  put: true
+                }
+              }}
+              className="block-list unfixed"
+              tag="ul"
+              onChange={(order, sortable, evt) => {
+                console.log("handling change");
+                this.props.onChange(order, this.props.mode);
+              }}
+            >
+              {this.props.items.map((val, key) => (
+                <li key={key} data-id={val}>
+                  <div style={{ display: "flex" }}>
+                    <div style={{ flex: 1 }}>{val}</div>
+                    <div style={{ flex: 0 }}>
+                      <Icon
+                        className="deletecursor"
+                        name="delete"
+                        style={{ float: "right" }}
+                        onClick={() => {
+                          const items = this.props.items;
+                          items.splice(key, 1);
+                          this.props.onChange(items, this.props.mode);
+                        }}
+                      ></Icon>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </Sortable>
+          </div>
         </div>
-        <div style={{ flexDirection: "column" }} className="col-sm-6">
+        <div
+          style={{ flexDirection: "column", display: "flex" }}
+          className="col-sm-6"
+        >
           <Input
             fluid
             style={{ margin: "0px 0px 5px 0px" }}
@@ -92,7 +105,7 @@ export default class ScenesActions extends React.Component {
               });
             }}
           />
-          <div>
+          <div style={{ overflowY: "auto" }}>
             <Sortable
               key={this.state.trigger}
               options={{
@@ -109,7 +122,9 @@ export default class ScenesActions extends React.Component {
             >
               {this.state.source.map((val, key) => (
                 <li key={key} data-id={val}>
-                  {val}
+                  <div style={{ display: "flex" }}>
+                    <div style={{ flex: 1 }}>{val}</div>
+                  </div>
                 </li>
               ))}
             </Sortable>
