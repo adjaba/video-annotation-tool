@@ -1309,7 +1309,7 @@ class App extends Component {
                         icon="play"
                         labelPosition="left"
                         onClick={this.playSection}
-                        style={{ marginBottom: "5px" }}
+                        style={{ marginTop: "5px" }}
                       />
                       <Button
                         color="grey"
@@ -1318,7 +1318,7 @@ class App extends Component {
                         onClick={e => {
                           this.saveVideoPreview();
                         }}
-                        style={{ marginBottom: "5px" }}
+                        style={{ marginTop: "5px" }}
                       >
                         <Icon name="save" />
                         Apply frames
@@ -1331,6 +1331,7 @@ class App extends Component {
                           this.deleteEvent(this.state.segmentIndex)
                         }
                         disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
+                        style={{ marginTop: "5px" }}
                       >
                         <Icon name="remove circle" size="small" />
                         Delete Event
