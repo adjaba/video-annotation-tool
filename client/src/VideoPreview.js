@@ -103,6 +103,7 @@ export default class VideoPreview extends Component {
           {...videoPreviewOptions}
           style={{ display: "flex", width: "100%", height: "100%" }}
         />
+        {this.props.name.charAt(0).toUpperCase() + this.props.name.slice(1)}{" "}
         Frame
         <Input
           style={{ width: "100px" }}
