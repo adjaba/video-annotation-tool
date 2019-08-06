@@ -887,19 +887,19 @@ class App extends Component {
               onClick={() => this.setState({ visibleMenu: false })}
             />
           </Header>
+          <Button
+            fluid
+            positive
+            icon
+            labelPosition="left"
+            onClick={this.addEvent}
+            disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
+          >
+            {" "}
+            <Icon name="add" size="small" />
+            Add Event
+          </Button>
           <div style={{ flex: 1, overflowY: "auto" }}>
-            <Button
-              fluid
-              positive
-              icon
-              labelPosition="left"
-              onClick={this.addEvent}
-              disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
-            >
-              {" "}
-              <Icon name="add" size="small" />
-              Add Event
-            </Button>
             <List divided selection>
               {this.renderEvents()}
             </List>
