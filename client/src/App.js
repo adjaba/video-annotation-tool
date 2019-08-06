@@ -234,7 +234,7 @@ class App extends Component {
       });
     });
 
-    player.on("pause", () => {
+    player.on("timeupdate", () => {
       this.setState({
         currentTime: player.currentTime()
       });
@@ -363,13 +363,14 @@ class App extends Component {
 
     if (end > start) {
       myPlayer.currentTime(start);
-      myPlayer.on("timeupdate", function(e) {
+      var pauseFunc = function(e) {
         if (myPlayer.currentTime() >= end) {
           console.log("paused", myPlayer.currentTime(), end);
           myPlayer.pause();
-          myPlayer.off("timeupdate");
+          myPlayer.off("timeupdate", pauseFunc);
         }
-      });
+      };
+      myPlayer.on("timeupdate", pauseFunc);
       myPlayer.play();
     } else {
       alert("end time should be bigger than start time");
