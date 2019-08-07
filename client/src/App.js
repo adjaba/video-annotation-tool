@@ -60,8 +60,10 @@ import { callbackify } from "util";
 // })()
 
 var URL = window.URL || window.webkitURL;
-// var mi = require('js/mediainfo.js');
-var processing = false;
+// var mediaInfo = require('mediainfo');
+// var parser = require('xml2json');
+// const fs = require('fs');
+// var processing = false;
 
 var videoJsOptions = {
   autoplay: true,
@@ -102,7 +104,7 @@ class App extends Component {
       segmentActions: [],
       videoEndSecs: 0,
       visibleMenu: false,
-      visibleScenesActions: false,
+      visibleScenesActions: false
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
@@ -118,6 +120,7 @@ class App extends Component {
     this.addEvent = this.addEvent.bind(this);
     this.deleteEvent = this.deleteEvent.bind(this);
     this.deleteEventFromSidebar = this.deleteEventFromSidebar.bind(this);
+    this.addToDatabase = this.addToDatabase.bind(this);
     // this.parseFile = this.parseFile.bind(this);
   }
 
@@ -178,6 +181,26 @@ class App extends Component {
     }
   }
 
+  async addToDatabase() {
+    const videoName = this.state.videoName;
+    const jsonName = this.state.jsonName;
+    //TODO: figure out what we're actually saving
+    const currentJson = this.state.history[this.state.history.length - 1];
+    await fetch("/api/end/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        videoName,
+        jsonName,
+        currentJson
+      })
+    });
+  }
+  // componentWillUnmount(){
+  //   this.addToDatabase();
+  // }
   // on video upload
   playSelectedFile(event) {
     var file = event.target.files[0];
@@ -245,6 +268,11 @@ class App extends Component {
   }
 
   // parseFile(file) {
+  //   let mediaInfoLib = mediaInfo();
+  //   let mi = new mediaInfoLib.MediaInfo();
+
+  // }
+
   //   if (processing) {
   //     return;
   //   }
@@ -488,6 +516,7 @@ class App extends Component {
       segmentStart: segmentStart,
       segmentEnd: segmentEnd
     });
+    this.addToDatabase();
   }
 
   /**
@@ -545,8 +574,8 @@ class App extends Component {
 
     this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
     this.setState({
-      visibleScenesActions: true,
-    })
+      visibleScenesActions: true
+    });
   }
 
   deleteEventFromSidebar(segmentIndex) {
@@ -816,7 +845,7 @@ class App extends Component {
                   segmentIndex: prop["segmentIndex"],
                   segmentActions: prop["labelAction"],
                   segmentScenes: prop["labelScene"],
-                  visibleScenesActions: true,
+                  visibleScenesActions: true
                 });
               }}
               onDeleteClick={e => {
@@ -960,7 +989,10 @@ class App extends Component {
         </div>
         <div
           style={{
-            display: editReady && thereAreEvents && this.state.visibleScenesActions? "flex" : "none",
+            display:
+              editReady && thereAreEvents && this.state.visibleScenesActions
+                ? "flex"
+                : "none",
             flex: 8,
             flexDirection: "column",
             height: "100%",

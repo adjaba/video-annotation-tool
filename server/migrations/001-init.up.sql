@@ -1,20 +1,8 @@
-create table Projects (
+create table Videos (
   id integer primary key autoincrement,
-  name text not null,
-  referenceText,
+  videoName text not null,
+  currentJson text not null,
   referenceLink,
-  form text not null
-);
-
-create table Images (
-  id integer primary key autoincrement,
-  originalName text not null,
-  link text not null,
-  externalLink text,
-  localPath text,
-  labeled boolean,
-  labelData text not null, /* JSON-stringified data, matching the form data in the project */
-  lastEdited real default 0.0,
-  projectsId integer,
-  constraint images_fk_projectsId foreign key (projectsId) references Projects (id) on delete cascade
+  form text not null,
+  lastEdited real default 0.0
 );
