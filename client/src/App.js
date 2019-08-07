@@ -101,7 +101,8 @@ class App extends Component {
       segmentScenes: [],
       segmentActions: [],
       videoEndSecs: 0,
-      visibleMenu: false
+      visibleMenu: false,
+      visibleScenesActions: false,
     };
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
@@ -543,6 +544,9 @@ class App extends Component {
     );
 
     this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
+    this.setState({
+      visibleScenesActions: true,
+    })
   }
 
   deleteEventFromSidebar(segmentIndex) {
@@ -811,7 +815,8 @@ class App extends Component {
                   segmentEnd: prop["segment"][1],
                   segmentIndex: prop["segmentIndex"],
                   segmentActions: prop["labelAction"],
-                  segmentScenes: prop["labelScene"]
+                  segmentScenes: prop["labelScene"],
+                  visibleScenesActions: true,
                 });
               }}
               onDeleteClick={e => {
@@ -955,13 +960,13 @@ class App extends Component {
         </div>
         <div
           style={{
-            display: editReady && thereAreEvents ? "flex" : "none",
+            display: editReady && thereAreEvents && this.state.visibleScenesActions? "flex" : "none",
             flex: 8,
             flexDirection: "column",
             height: "100%",
             borderLeft: "1px solid #ddd",
             borderRight: "1px solid #ddd",
-            minWidth: "283px"
+            minWidth: "max-content"
           }}
         >
           <div
@@ -969,14 +974,15 @@ class App extends Component {
               display: "flex",
               height: "38px",
               width: "100%",
-              borderTop: "1px #222426"
+              borderTop: "1px #222426",
+              alignItems: "center"
             }}
           >
             <Header
               as="h4"
               floated="left"
               size="large"
-              style={{ padding: "5px 10px" }}
+              style={{ padding: "5px 10px", margin: 0 }}
             >
               Event {this.state.segmentIndex}
             </Header>
@@ -994,6 +1000,12 @@ class App extends Component {
               <Icon name="remove circle" size="small" />
               Delete Event
             </Button>
+            <Icon
+              size="big"
+              name="angle left"
+              style={{ float: "right", marginRight: 0 }}
+              onClick={() => this.setState({ visibleScenesActions: false })}
+            />
             {/* <Button
               size="small"
               icon="eye"
