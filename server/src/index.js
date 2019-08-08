@@ -73,13 +73,39 @@ const uploads = multer({
 // app.post('/api/uploads/:projectId', uploads.array('videos'), (req, res) => {
 //     res.json({ success: true });
 // })
-app.post("/api/end", (req, res) => {
-  const { videoName, jsonName, currentJson } = req.body;
 
-  if (videos.getByVideoName(videoName)) {
-    console.log("already added");
+app.post("/api/start", (req, res) => {
+  const { videoName } = req.body;
+  const entry = videos.getByVideoName(videoName);
+  console.log(entry);
+  if (entry.length > 0) {
+    console.log("already added,", entry[0].id);
+    res.json({ success: true, message: entry });
   } else {
-    const id = videos.addSession(videoName, jsonName, currentJson);
+    const id = videos.addSession(videoName);
     console.log("added entry with id", id);
+    res.json({ success: true, message: currentJson });
   }
 });
+
+app.post("/api/end", (req, res) => {
+  const { videoName, jsonName, currentJson } = req.body;
+  const entry = videos.getByVideoName(videoName);
+  if (entry.length > 0) {
+    console.log("already added,", entry[0].id);
+    res.json({ success: true, message: "already added" });
+  } else {
+    const id = videos.addSession(videoName, jsonName, currentJson[0]);
+    console.log("added entry with id", id);
+    res.json({ success: true, message: currentJson });
+  }
+});
+
+app.get("/api/videos", (req, res) => {
+  const entries = videos.getAll();
+  res.json({ success: true, message: entries });
+});
+
+const PORT = process.env.API_PORT || process.env.PORT || 3001;
+
+app.listen(PORT, () => console.log(`Server listening on ${PORT}`));

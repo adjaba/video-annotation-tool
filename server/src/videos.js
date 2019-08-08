@@ -3,19 +3,17 @@ const path = require("path");
 
 const Videos = {
   getByVideoName: videoName => {
+    console.log("getByVideoName");
     const videos = db
       .prepare(
         `
-select videos.id, videoName, currentJson, lastEdited
+select id
 from videos
 where videos.videoName = ?;
 `
       )
       .all(videoName);
-    return videos.map(video => ({
-      ...video,
-      currentJson: JSON.parse(video.currentJson)
-    }));
+    return videos;
   },
 
   get: id => {
@@ -31,14 +29,51 @@ where videos.id = ?;
 
     return { ...video, currentJson: JSON.parse(video.currentJson) };
   },
-  addSession: (videoName, jsonName, currentJson) => {
-    const stmt = db.prepare(`
+  getAll: () => {
+    const videos = db
+      .prepare(
+        `
+select *
+from videos
+`
+      )
+      .all();
+
+    return videos.map(video => ({
+      ...video,
+      currentJson: JSON.parse(video.currentJson)
+    }));
+  },
+  addSession: (id, videoName, jsonName, currentJson) => {
+    console.log("video", JSON.stringify(currentJson));
+    const lastInsertRowId = db
+      .prepare(
+        `
   insert into videos(videoName, currentJson, lastEdited)
   values (?, ?, ?);
-  `);
+  `
+      )
+      .run(videoName, JSON.stringify(currentJson), +new Date());
 
-    const { lastInsertRowid } = stmt.run(filename, localPath, projectId);
-    return lastInsertRowid;
+    // const { lastInsertRowid } = stmt.run(videoName, currentJson);
+    return lastInsertRowId;
+  },
+  updateSession: (id, videoName, jsonName, currentJson) => {
+    console.log("video", JSON.stringify(currentJson));
+    const lastInsertRowId = db
+      .prepare(
+        `
+  update videos
+    set videoName = ?,
+    currentJson = ?,
+    lastEdited = ?
+  where videos.id = ?;
+  `
+      )
+      .run(videoName, JSON.stringify(currentJson), +new Date(), id);
+
+    // const { lastInsertRowid } = stmt.run(videoName, currentJson);
+    return lastInsertRowId;
   },
   //   addVideoUrls: (projectId, urls) => {
   //     const getName = url =>

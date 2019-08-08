@@ -130,3 +130,11 @@ ul {
 .unfixed > * {
   border-bottom: 1px solid #acc4e0;
 }
+
+.vjs-marker {
+  position: absolute;
+  opacity: 1;
+  height: 100%;
+  background-color: rgb(39, 159, 189);
+  width: 4px;
+}
