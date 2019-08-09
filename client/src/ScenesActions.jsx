@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Sortable from "react-sortablejs";
-import { scenes, actions } from "./utils";
+// import { scenes, actions } from "./utils";
 import { Icon, Header, Input } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
@@ -8,23 +8,13 @@ export default class ScenesActions extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      source:
-        this.props.mode === "scenes"
-          ? Object.keys(scenes).map(source => source.toLowerCase())
-          : this.props.mode === "actions"
-          ? Object.keys(actions).map(source => source.toLowerCase())
-          : null,
+      source: Object.values(this.props.source),
       trigger: false
     };
   }
 
   render() {
-    var pool =
-      this.props.mode === "scenes"
-        ? Object.keys(scenes)
-        : this.props.mode === "actions"
-        ? Object.keys(actions)
-        : null;
+    var pool = Object.values(this.props.source);
 
     return (
       <div

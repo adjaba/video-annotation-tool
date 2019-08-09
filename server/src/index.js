@@ -13,6 +13,9 @@ const path = require("path");
 const fs = require("fs").promises;
 
 const videos = require("./videos");
+const events = require("./events");
+const actions = require("./actions");
+const scenes = require("./scenes");
 // const projects = require('./queries/projects');
 // const images = require('./queries/images');
 // const mlmodels = require('./queries/mlmodels');
@@ -106,6 +109,53 @@ app.get("/api/videos", (req, res) => {
   res.json({ success: true, message: entries });
 });
 
+app.get("/api/events", (req, res) => {
+  const entries = events.get();
+  res.json({ success: true, message: entries });
+});
+
+app.get("/api/events/all", (req, res) => {
+  const entries = events.getAll();
+  res.json({ success: true, message: entries });
+});
+
+app.post("/api/events/delete", (req, res) => {
+  const { id } = req.body;
+  events.toggleDelete(id);
+  res.json({ success: true });
+});
+
+app.get("/api/scenes", (req, res) => {
+  const entries = scenes.get();
+  res.json({ success: true, message: entries });
+});
+
+app.get("/api/scenes/all", (req, res) => {
+  const entries = scenes.getAll();
+  res.json({ success: true, message: entries });
+});
+
+app.post("/api/scenes/delete", (req, res) => {
+  const { id } = req.body;
+  scenes.toggleDelete(id);
+  res.json({ success: true });
+});
+
+app.get("/api/actions", (req, res) => {
+  const entries = actions.get();
+  res.json({ success: true, message: entries });
+});
+
+app.get("/api/actions/all", (req, res) => {
+  const entries = actions.getAll();
+  res.json({ success: true, message: entries });
+});
+
+app.post("/api/actions/delete", (req, res) => {
+  const { id } = req.body;
+  actions.toggleDelete(id);
+  res.json({ success: true });
+});
 const PORT = process.env.API_PORT || process.env.PORT || 3001;
 
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));

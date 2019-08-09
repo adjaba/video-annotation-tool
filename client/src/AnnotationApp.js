@@ -144,6 +144,9 @@ class AnnotationApp extends Component {
     this.fetchFromDatabase = this.fetchFromDatabase.bind(this);
     this.markers = this.markers.bind(this);
     this.id = 0;
+    this.events = {};
+    this.scenes = {};
+    this.actions = {};
     // this.parseFile = this.parseFile.bind(this);
   }
 
@@ -152,6 +155,42 @@ class AnnotationApp extends Component {
     REDO: () => this.redo(),
     SAVE: () => this.saveVideoPreview()
   };
+
+  async componentDidMount() {
+    try {
+      const eventsR = await (await fetch("/api/events")).json();
+      console.log("SUCCESS event fetch", eventsR);
+      eventsR["message"].forEach(obj => {
+        var { id, eventName } = obj;
+        this.events[id] = eventName;
+      });
+      console.log(this.events, events);
+    } catch (error) {
+      console.log(error, "OH NO");
+    }
+    try {
+      const actionsR = await (await fetch("/api/actions")).json();
+      console.log("SUCCESS action fetch", actionsR);
+      actionsR["message"].forEach(obj => {
+        var { id, actionName } = obj;
+        this.actions[id] = actionName;
+      });
+      console.log(this.actions, actions);
+    } catch (error) {
+      console.log(error, "OH NO");
+    }
+    try {
+      const scenesR = await (await fetch("/api/scenes")).json();
+      console.log("SUCCESS scene fetch", scenesR);
+      scenesR["message"].forEach(obj => {
+        var { id, sceneName } = obj;
+        this.scenes[id] = sceneName;
+      });
+      console.log(this.scenes, scenes);
+    } catch (error) {
+      console.log(error, "OH NO");
+    }
+  }
 
   componentDidUpdate(prevProps, prevState) {
     const videoNameJSONUpdated =
@@ -963,8 +1002,12 @@ class AnnotationApp extends Component {
                   segmentStart: prop["segment"][0],
                   segmentEnd: prop["segment"][1],
                   segmentIndex: prop["segmentIndex"],
-                  segmentActions: prop["labelAction"],
-                  segmentScenes: prop["labelScene"],
+                  segmentActions: prop["labelActionIndex"].map(
+                    idx => this.actions[idx]
+                  ),
+                  segmentScenes: prop["labelSceneIndex"].map(
+                    idx => this.scenes[idx]
+                  ),
                   visibleScenesActions: true
                 });
               }}
@@ -1183,8 +1226,8 @@ class AnnotationApp extends Component {
             items={
               editReady && thereAreEvents
                 ? currentMetadata["annotations"][this.state.segmentIndex][
-                    "labelScene"
-                  ].map(item => item.toLowerCase())
+                    "labelSceneIndex"
+                  ].map(index => this.scenes[index] || "".toLowerCase())
                 : []
             }
             style={{
@@ -1193,6 +1236,7 @@ class AnnotationApp extends Component {
               borderBottom: "1px solid #ddd",
               borderTop: "1px solid #ddd"
             }}
+            source={this.scenes}
             onChange={this.setScenesActions}
           />
           {/* </Grid.Column>
@@ -1203,10 +1247,11 @@ class AnnotationApp extends Component {
             items={
               editReady && thereAreEvents
                 ? currentMetadata["annotations"][this.state.segmentIndex][
-                    "labelAction"
-                  ].map(item => item.toLowerCase())
+                    "labelActionIndex"
+                  ].map(index => this.actions[index] || "".toLowerCase())
                 : []
             }
+            source={this.actions}
             style={{ flex: 1, padding: "5px" }}
             onChange={this.setScenesActions}
           />
@@ -1413,11 +1458,11 @@ class AnnotationApp extends Component {
                       search
                       selection
                       onChange={(e, { value }) => this.setEvent(value)}
-                      options={Object.keys(events).map(event =>
+                      options={Object.keys(this.events).map(id =>
                         Object({
-                          key: events[event],
-                          text: event,
-                          value: event
+                          key: id,
+                          text: this.events[id],
+                          value: this.events[id]
                         })
                       )}
                       defaultValue={
