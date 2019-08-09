@@ -7,7 +7,7 @@ const Videos = {
     const videos = db
       .prepare(
         `
-select id
+select videos.id, currentJson
 from videos
 where videos.videoName = ?;
 `
@@ -44,9 +44,9 @@ from videos
       currentJson: JSON.parse(video.currentJson)
     }));
   },
-  addSession: (id, videoName, jsonName, currentJson) => {
-    console.log("video", JSON.stringify(currentJson));
-    const lastInsertRowId = db
+  addSession: (videoName, jsonName, currentJson) => {
+    console.log("ADDING", JSON.stringify(currentJson));
+    const { lastInsertRowid } = db
       .prepare(
         `
   insert into videos(videoName, currentJson, lastEdited)
@@ -56,24 +56,18 @@ from videos
       .run(videoName, JSON.stringify(currentJson), +new Date());
 
     // const { lastInsertRowid } = stmt.run(videoName, currentJson);
-    return lastInsertRowId;
+    return lastInsertRowid;
   },
   updateSession: (id, videoName, jsonName, currentJson) => {
-    console.log("video", JSON.stringify(currentJson));
-    const lastInsertRowId = db
-      .prepare(
-        `
+    db.prepare(
+      `
   update videos
     set videoName = ?,
     currentJson = ?,
     lastEdited = ?
   where videos.id = ?;
   `
-      )
-      .run(videoName, JSON.stringify(currentJson), +new Date(), id);
-
-    // const { lastInsertRowid } = stmt.run(videoName, currentJson);
-    return lastInsertRowId;
+    ).run(videoName, JSON.stringify(currentJson), +new Date(), id);
   },
   //   addVideoUrls: (projectId, urls) => {
   //     const getName = url =>

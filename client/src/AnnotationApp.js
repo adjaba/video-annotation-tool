@@ -141,7 +141,9 @@ class AnnotationApp extends Component {
     this.deleteEvent = this.deleteEvent.bind(this);
     this.deleteEventFromSidebar = this.deleteEventFromSidebar.bind(this);
     this.addToDatabase = this.addToDatabase.bind(this);
+    this.fetchFromDatabase = this.fetchFromDatabase.bind(this);
     this.markers = this.markers.bind(this);
+    this.id = 0;
     // this.parseFile = this.parseFile.bind(this);
   }
 
@@ -237,22 +239,80 @@ class AnnotationApp extends Component {
     });
   }
 
+  async fetchFromDatabase(videoName) {
+    console.log("fetchFromDatabase", videoName);
+
+    try {
+      await (await fetch("/api/start/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          videoName
+        })
+      }))
+        .json()
+        .then(message => {
+          console.log(message);
+          const { id, currentJson } = message["message"][0];
+          this.id = id;
+          console.log("MY ID", this.id);
+          if (currentJson) {
+            const r = window.confirm(
+              "You have previously saved work. Restore?"
+            );
+            if (r) {
+              // const state = update(this.state, {$merge: currentJson})
+              this.setState(JSON.parse(currentJson));
+            }
+          }
+        });
+      // alert("MY ID", this.id);
+      // alert("MESSAGE", message[]);
+    } catch (err) {
+      console.log(err);
+    }
+    // await fetch("/api/start/", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json"
+    //   },
+    //   body: JSON.stringify({
+    //     videoName,
+    //   })
+    // }).then((id) => {
+    //   return id.json()}).then(id => {console.log(id); this.id = id;});
+  }
+
   async addToDatabase() {
     const videoName = this.state.videoName;
     const jsonName = this.state.jsonName;
+    const id = this.id;
+    console.log(id);
     //TODO: figure out what we're actually saving
-    const currentJson = this.state.history[this.state.history.length - 1];
-    await fetch("/api/end/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        videoName,
-        jsonName,
-        currentJson
-      })
-    });
+    const currentJson = update(this.state, { $unset: ["videoSrc"] });
+    try {
+      const message = await (await fetch("/api/save/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: id,
+          videoName,
+          jsonName,
+          currentJson
+        })
+      })).json();
+      const newId = message["message"];
+      if (!id) {
+        this.id = newId;
+      }
+      console.log(this.id);
+    } catch (err) {
+      console.log(err);
+    }
   }
   // componentWillUnmount(){
   //   this.addToDatabase();
@@ -299,6 +359,11 @@ class AnnotationApp extends Component {
     //   src: fileURL,
     //   type: file.type
     // });
+    console.log(
+      "call fetch from database. ",
+      file.name.substring(0, file.name.lastIndexOf("."))
+    );
+    this.fetchFromDatabase(file.name.substring(0, file.name.lastIndexOf(".")));
     this.setState({
       videoName: file.name.substring(0, file.name.lastIndexOf(".")),
       videoSrc: {
@@ -320,7 +385,6 @@ class AnnotationApp extends Component {
       });
     });
     // this.parseFile(file);
-    // console.log(videojs.getPlayer("videoJSEnd"));
   }
 
   // parseFile(file) {
@@ -512,7 +576,7 @@ class AnnotationApp extends Component {
    *  for addEvent - this is so that when addEvent is clicked we see the new event ready to be edited
    *  for deleteEvent - this is so that when we delete an event we go back to empty slate and select a new event for editing
    */
-  saveMetadata(
+  async saveMetadata(
     metadata,
     segmentIndex = this.state.segmentIndex,
     segmentStart = this.state.segmentStart,
@@ -564,7 +628,7 @@ class AnnotationApp extends Component {
     // only keep the last 20 saved metadata
     history = history.slice(Math.max(history.length - 20, 0));
 
-    this.setState({
+    await this.setState({
       saved: true,
       history: history,
       historyIndex: 0,
@@ -755,7 +819,7 @@ class AnnotationApp extends Component {
   }
 
   setScenesActions(items, mode) {
-    console.log("triggered" + this.state.segmentIndex + mode);
+    // console.log("triggered" + this.state.segmentIndex + mode+items.toString());
     var metadata;
     if (mode === "scenes") {
       metadata = update(

@@ -76,29 +76,29 @@ const uploads = multer({
 
 app.post("/api/start", (req, res) => {
   const { videoName } = req.body;
+  console.log("api start", videoName);
   const entry = videos.getByVideoName(videoName);
   console.log(entry);
   if (entry.length > 0) {
-    console.log("already added,", entry[0].id);
+    console.log("already added,", entry);
     res.json({ success: true, message: entry });
   } else {
-    const id = videos.addSession(videoName);
-    console.log("added entry with id", id);
-    res.json({ success: true, message: currentJson });
+    res.json({ success: true, message: "no entry" });
   }
 });
 
-app.post("/api/end", (req, res) => {
-  const { videoName, jsonName, currentJson } = req.body;
-  const entry = videos.getByVideoName(videoName);
-  if (entry.length > 0) {
-    console.log("already added,", entry[0].id);
-    res.json({ success: true, message: "already added" });
-  } else {
-    const id = videos.addSession(videoName, jsonName, currentJson[0]);
+app.post("/api/save", (req, res) => {
+  const { id, videoName, jsonName, currentJson } = req.body;
+  if (!id) {
+    const id = videos.addSession(videoName, jsonName, currentJson);
     console.log("added entry with id", id);
+    res.json({ success: true, message: id });
+  } else {
+    videos.updateSession(id, videoName, jsonName, currentJson);
+    console.log("updated entry with id", id);
     res.json({ success: true, message: currentJson });
   }
+  console.log(videos.getAll());
 });
 
 app.get("/api/videos", (req, res) => {

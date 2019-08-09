@@ -30,6 +30,17 @@ class AdminApp extends Component {
       console.log(error, "OH NO");
     }
   }
+
+  convertTimestamp(timestamp) {
+    var d = new Date(timestamp);
+    var year = d.getFullYear(),
+      mo = ("0" + (d.getMonth() + 1)).slice(-2),
+      day = ("0" + d.getDate()).slice(-2),
+      h = d.getHours(),
+      min = ("0" + d.getMinutes()).slice(-2);
+    return year + "/" + mo + "/" + day + " " + h + ":" + min;
+  }
+
   render() {
     const { videos } = this.state;
     return (
@@ -44,6 +55,7 @@ class AdminApp extends Component {
               <Table.Row>
                 <Table.HeaderCell>Video Name</Table.HeaderCell>
                 <Table.HeaderCell>JSON</Table.HeaderCell>
+                <Table.HeaderCell>Last Edited</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -51,7 +63,16 @@ class AdminApp extends Component {
                 ({ currentJson, id, lastEdited, videoName }) => (
                   <Table.Row key={id}>
                     <Table.Cell>{videoName}</Table.Cell>
-                    <Table.Cell>{JSON.stringify(currentJson)}</Table.Cell>
+                    <Table.Cell>
+                      {JSON.stringify(
+                        currentJson["history"][
+                          currentJson["history"].length -
+                            1 -
+                            currentJson["historyIndex"]
+                        ][0]
+                      )}
+                    </Table.Cell>
+                    <Table.Cell>{this.convertTimestamp(lastEdited)}</Table.Cell>
                   </Table.Row>
                 )
               )}
