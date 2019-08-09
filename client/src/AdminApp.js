@@ -24,7 +24,7 @@ class AdminApp extends Component {
   async reload() {
     console.log("HEY");
     try {
-      const videos = await (await fetch("/api/videos")).json();
+      const videos = await (await fetch("/api/videos/")).json();
       console.log("SUCCESS", videos);
       this.setState({
         videos: videos["message"]
@@ -33,7 +33,7 @@ class AdminApp extends Component {
       console.log(error, "OH NO");
     }
     try {
-      const events = await (await fetch("/api/events/all")).json();
+      const events = await (await fetch("/api/events/")).json();
       console.log("SUCCESS", events);
       this.setState({
         events: events["message"]
@@ -42,7 +42,7 @@ class AdminApp extends Component {
       console.log(error, "OH NO");
     }
     try {
-      const scenes = await (await fetch("/api/scenes/all")).json();
+      const scenes = await (await fetch("/api/scenes/")).json();
       console.log("SUCCESS scene", scenes);
       this.setState({
         scenes: scenes["message"]
@@ -51,7 +51,7 @@ class AdminApp extends Component {
       console.log(error, "OH NO");
     }
     try {
-      const actions = await (await fetch("/api/actions/all")).json();
+      const actions = await (await fetch("/api/actions/")).json();
       console.log("SUCCESS", actions);
       this.setState({
         actions: actions["message"]

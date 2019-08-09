@@ -110,11 +110,6 @@ app.get("/api/videos", (req, res) => {
 });
 
 app.get("/api/events", (req, res) => {
-  const entries = events.get();
-  res.json({ success: true, message: entries });
-});
-
-app.get("/api/events/all", (req, res) => {
   const entries = events.getAll();
   res.json({ success: true, message: entries });
 });
@@ -126,11 +121,6 @@ app.post("/api/events/delete", (req, res) => {
 });
 
 app.get("/api/scenes", (req, res) => {
-  const entries = scenes.get();
-  res.json({ success: true, message: entries });
-});
-
-app.get("/api/scenes/all", (req, res) => {
   const entries = scenes.getAll();
   res.json({ success: true, message: entries });
 });
@@ -142,11 +132,6 @@ app.post("/api/scenes/delete", (req, res) => {
 });
 
 app.get("/api/actions", (req, res) => {
-  const entries = actions.get();
-  res.json({ success: true, message: entries });
-});
-
-app.get("/api/actions/all", (req, res) => {
   const entries = actions.getAll();
   res.json({ success: true, message: entries });
 });

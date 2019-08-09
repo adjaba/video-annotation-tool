@@ -145,8 +145,10 @@ class AnnotationApp extends Component {
     this.markers = this.markers.bind(this);
     this.id = 0;
     this.events = {};
-    this.scenes = {};
+    this.scenes = {}; // complete scenes
+    this.scenepool = {}; // undeleted scenes (for options)
     this.actions = {};
+    this.actionpool = {}; // undeleted events (for options)
     // this.parseFile = this.parseFile.bind(this);
   }
 
@@ -172,8 +174,12 @@ class AnnotationApp extends Component {
       const actionsR = await (await fetch("/api/actions")).json();
       console.log("SUCCESS action fetch", actionsR);
       actionsR["message"].forEach(obj => {
-        var { id, actionName } = obj;
+        var { id, actionName, deleted } = obj;
         this.actions[id] = actionName;
+
+        if (!+deleted) {
+          this.actionpool[id] = actionName;
+        }
       });
       console.log(this.actions, actions);
     } catch (error) {
@@ -183,8 +189,12 @@ class AnnotationApp extends Component {
       const scenesR = await (await fetch("/api/scenes")).json();
       console.log("SUCCESS scene fetch", scenesR);
       scenesR["message"].forEach(obj => {
-        var { id, sceneName } = obj;
+        var { id, sceneName, deleted } = obj;
         this.scenes[id] = sceneName;
+
+        if (!+deleted) {
+          this.scenepool[id] = sceneName;
+        }
       });
       console.log(this.scenes, scenes);
     } catch (error) {
@@ -1236,7 +1246,7 @@ class AnnotationApp extends Component {
               borderBottom: "1px solid #ddd",
               borderTop: "1px solid #ddd"
             }}
-            source={this.scenes}
+            source={this.scenepool}
             onChange={this.setScenesActions}
           />
           {/* </Grid.Column>
@@ -1251,7 +1261,7 @@ class AnnotationApp extends Component {
                   ].map(index => this.actions[index] || "".toLowerCase())
                 : []
             }
-            source={this.actions}
+            source={this.actionpool}
             style={{ flex: 1, padding: "5px" }}
             onChange={this.setScenesActions}
           />
