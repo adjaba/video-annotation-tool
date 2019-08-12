@@ -9,8 +9,6 @@ import { frameToSecs, secsToFrame, scenes, events, actions } from "./utils";
 import ScenesActions from "./ScenesActions";
 import update from "immutability-helper";
 import { Hotkeys, GlobalHotKeys } from "react-hotkeys";
-import { Link } from "react-router-dom";
-
 import {
   Header,
   Form,
@@ -1072,13 +1070,6 @@ class AnnotationApp extends Component {
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <GlobalHotKeys keyMap={keyMap} handlers={this.handlers} />
-        <div style={{ position: "absolute", top: "1em", right: "1em" }}>
-          <Link to="/admin">
-            <Button basic color="black">
-              Admin
-            </Button>
-          </Link>
-        </div>
         <div
           style={{
             display: this.state.visibleMenu ? "flex" : "none",

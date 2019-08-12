@@ -3,7 +3,14 @@ import { Switch, Route, Link } from "react-router-dom";
 
 import "./AdminApp.css";
 
-import { Header, Segment, Table, Button, Checkbox } from "semantic-ui-react";
+import {
+  Header,
+  Segment,
+  Table,
+  Button,
+  Checkbox,
+  Input
+} from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
 class AdminApp extends Component {
@@ -13,7 +20,10 @@ class AdminApp extends Component {
       videos: null,
       events: null,
       scenes: null,
-      actions: null
+      actions: null,
+      newEvent: null,
+      newScene: null,
+      newAction: null
     };
   }
 
@@ -71,6 +81,18 @@ class AdminApp extends Component {
     return year + "/" + mo + "/" + day + " " + h + ":" + min;
   }
 
+  async onSubmit(e, mode) {
+    e.preventDefault();
+    const form = e.target;
+
+    const type = this.state.currentValue;
+
+    this.setState({
+      newAction: null,
+      newEvent: null,
+      newScene: null
+    });
+  }
   async toggleDelete(mode, id) {
     console.log(mode, id, "toggleDelete");
     if (mode === "events" || mode === "scenes" || mode === "actions") {
@@ -90,6 +112,27 @@ class AdminApp extends Component {
     }
     this.reload();
   }
+
+  async rename(id, newName, mode) {
+    if (mode === "events" || mode === "scenes" || mode === "actions") {
+      await (await fetch("/api/" + mode + "/rename", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id,
+          newName
+        })
+      }))
+        .json()
+        .then(message => {
+          console.log(message);
+        });
+    }
+    this.reload();
+  }
+
   render() {
     const { videos, events, scenes, actions } = this.state;
     return (
@@ -113,7 +156,14 @@ class AdminApp extends Component {
                   key={id}
                   style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
                 >
-                  <Table.Cell>{eventName}</Table.Cell>
+                  <Table.Cell>
+                    <Input
+                      value={eventName}
+                      onChange={(e, { value }) => {
+                        this.rename(id, value, "events");
+                      }}
+                    ></Input>
+                  </Table.Cell>
                   <Table.Cell>{id}</Table.Cell>
                   <Table.Cell>
                     <Checkbox
@@ -139,7 +189,14 @@ class AdminApp extends Component {
                   key={id}
                   style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
                 >
-                  <Table.Cell>{sceneName}</Table.Cell>
+                  <Table.Cell>
+                    <Input
+                      value={sceneName}
+                      onChange={(e, { value }) => {
+                        this.rename(id, value, "events");
+                      }}
+                    ></Input>
+                  </Table.Cell>
                   <Table.Cell>{id}</Table.Cell>
                   <Table.Cell>
                     <Checkbox
@@ -151,6 +208,10 @@ class AdminApp extends Component {
               ))}
             </Table.Body>
           </Table>
+          {/* <Header disabled> Add a new event </Header>
+          <Form onSubmit = {(e) => this.onSubmit(e, "Event")}>
+            <Form.Input label="Event Name:" onChange={(e, {value}) => this.setState({newEvent: value})}></Form.Input>
+          </Form> */}
           <Table celled>
             <Table.Header>
               <Table.Row>
@@ -165,7 +226,14 @@ class AdminApp extends Component {
                   key={id}
                   style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
                 >
-                  <Table.Cell>{actionName}</Table.Cell>
+                  <Table.Cell>
+                    <Input
+                      value={actionName}
+                      onChange={(e, { value }) => {
+                        this.rename(id, value, "events");
+                      }}
+                    ></Input>
+                  </Table.Cell>
                   <Table.Cell>{id}</Table.Cell>
                   <Table.Cell>
                     <Checkbox

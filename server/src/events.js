@@ -40,7 +40,7 @@ const Events = {
     db.prepare(
       `
   update events
-    set eventName = ?,
+    set eventName = ?
   where events.id = ?;
   `
     ).run(name, id);

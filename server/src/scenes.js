@@ -40,7 +40,7 @@ const Scenes = {
     db.prepare(
       `
     update scenes
-      set sceneName = ?,
+      set sceneName = ?
     where scenes.id = ?;
     `
     ).run(name, id);

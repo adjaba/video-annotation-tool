@@ -40,7 +40,7 @@ const Actions = {
     db.prepare(
       `
     update actions
-      set actionName = ?,
+      set actionName = ?
     where actions.id = ?;
     `
     ).run(name, id);

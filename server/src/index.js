@@ -120,6 +120,12 @@ app.post("/api/events/delete", (req, res) => {
   res.json({ success: true });
 });
 
+app.post("/api/events/rename", (req, res) => {
+  const { id, newName } = req.body;
+  events.rename(newName, id);
+  res.json({ success: true });
+});
+
 app.get("/api/scenes", (req, res) => {
   const entries = scenes.getAll();
   res.json({ success: true, message: entries });
@@ -128,6 +134,12 @@ app.get("/api/scenes", (req, res) => {
 app.post("/api/scenes/delete", (req, res) => {
   const { id } = req.body;
   scenes.toggleDelete(id);
+  res.json({ success: true });
+});
+
+app.post("/api/scenes/rename", (req, res) => {
+  const { id, newName } = req.body;
+  scenes.rename(newName, id);
   res.json({ success: true });
 });
 
@@ -141,6 +153,13 @@ app.post("/api/actions/delete", (req, res) => {
   actions.toggleDelete(id);
   res.json({ success: true });
 });
+
+app.post("/api/actions/rename", (req, res) => {
+  const { id, newName } = req.body;
+  actions.rename(newName, id);
+  res.json({ success: true });
+});
+
 const PORT = process.env.API_PORT || process.env.PORT || 3001;
 
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
