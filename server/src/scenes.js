@@ -25,16 +25,13 @@ const Scenes = {
       .all();
     return scenes;
   },
-  add: (name, id) => {
-    const scenes = db
-      .prepare(
-        `
-    insert into scenes(sceneName, currentJson, lastEdited)
-    values (?, ?, ?);
-    from scenes
-    `
-      )
-      .all();
+  add: name => {
+    db.prepare(
+      `
+  insert into scenes(sceneName, deleted)
+  values (?, ?);
+  `
+    ).run(name, 0);
   },
   rename: (name, id) => {
     db.prepare(

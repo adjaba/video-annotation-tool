@@ -9,9 +9,16 @@ import {
   Table,
   Button,
   Checkbox,
-  Input
+  Input,
+  Form
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
+
+const mapping = {
+  events: "newEvent",
+  actions: "newAction",
+  scenes: "newScene"
+};
 
 class AdminApp extends Component {
   constructor(props) {
@@ -82,16 +89,29 @@ class AdminApp extends Component {
   }
 
   async onSubmit(e, mode) {
+    console.log("HERE");
     e.preventDefault();
     const form = e.target;
+    const { newEvent, newAction, newScene } = this.state;
 
-    const type = this.state.currentValue;
+    if (mode === "events" || mode === "scenes" || mode === "actions") {
+      await (await fetch("/api/" + mode + "/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: this.state[mapping[mode]]
+        })
+      }))
+        .json()
+        .then(message => {
+          console.log(message);
+        });
 
-    this.setState({
-      newAction: null,
-      newEvent: null,
-      newScene: null
-    });
+      form.reset();
+      this.reload();
+    }
   }
   async toggleDelete(mode, id) {
     console.log(mode, id, "toggleDelete");
@@ -136,12 +156,15 @@ class AdminApp extends Component {
   render() {
     const { videos, events, scenes, actions } = this.state;
     return (
-      <div style={{ width: "1200px" }}>
+      <div
+        style={{ maxWidth: "1200px", marginLeft: "auto", marginRight: "auto" }}
+      >
         <Header disabled>Admin Page</Header>
         <Link to="/">
           <Button>Annotate</Button>
         </Link>
         <Segment>
+          <Header>Events</Header>
           <Table celled>
             <Table.Header>
               <Table.Row>
@@ -175,6 +198,19 @@ class AdminApp extends Component {
               ))}
             </Table.Body>
           </Table>
+          <Header disabled> Add a new event </Header>
+          <Form
+            style={{ maxWidth: 600 }}
+            onSubmit={e => this.onSubmit(e, "events")}
+          >
+            <Form.Input
+              label="Event Name:"
+              onChange={(e, { value }) => this.setState({ newEvent: value })}
+            ></Form.Input>
+            <Button type="submit">Add</Button>
+          </Form>
+        </Segment>
+        <Segment>
           <Table celled>
             <Table.Header>
               <Table.Row>
@@ -208,10 +244,19 @@ class AdminApp extends Component {
               ))}
             </Table.Body>
           </Table>
-          {/* <Header disabled> Add a new event </Header>
-          <Form onSubmit = {(e) => this.onSubmit(e, "Event")}>
-            <Form.Input label="Event Name:" onChange={(e, {value}) => this.setState({newEvent: value})}></Form.Input>
-          </Form> */}
+          <Header disabled> Add a new scene </Header>
+          <Form
+            style={{ maxWidth: 600 }}
+            onSubmit={e => this.onSubmit(e, "scenes")}
+          >
+            <Form.Input
+              label="Scene Name:"
+              onChange={(e, { value }) => this.setState({ newScene: value })}
+            ></Form.Input>
+            <Button type="submit">Add</Button>
+          </Form>
+        </Segment>
+        <Segment>
           <Table celled>
             <Table.Header>
               <Table.Row>
@@ -245,6 +290,17 @@ class AdminApp extends Component {
               ))}
             </Table.Body>
           </Table>
+          <Header disabled> Add a new action </Header>
+          <Form
+            style={{ maxWidth: 600 }}
+            onSubmit={e => this.onSubmit(e, "actions")}
+          >
+            <Form.Input
+              label="Action Name:"
+              onChange={(e, { value }) => this.setState({ newAction: value })}
+            ></Form.Input>
+            <Button type="submit">Add</Button>
+          </Form>
         </Segment>
         <Segment>
           <Table celled>

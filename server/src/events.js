@@ -25,16 +25,13 @@ const Events = {
       .all();
     return events;
   },
-  add: (name, id) => {
-    const events = db
-      .prepare(
-        `
-  insert into events(eventName, id, deleted)
-  values (?, ?, ?);
-  from events
+  add: name => {
+    db.prepare(
+      `
+  insert into events(eventName, deleted)
+  values (?, ?);
   `
-      )
-      .run(name, id, 0);
+    ).run(name, 0);
   },
   rename: (name, id) => {
     db.prepare(

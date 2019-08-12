@@ -126,6 +126,12 @@ app.post("/api/events/rename", (req, res) => {
   res.json({ success: true });
 });
 
+app.post("/api/events/add", (req, res) => {
+  const { name } = req.body;
+  events.add(name);
+  res.json({ success: true });
+});
+
 app.get("/api/scenes", (req, res) => {
   const entries = scenes.getAll();
   res.json({ success: true, message: entries });
@@ -143,6 +149,12 @@ app.post("/api/scenes/rename", (req, res) => {
   res.json({ success: true });
 });
 
+app.post("/api/scenes/add", (req, res) => {
+  const { name } = req.body;
+  scenes.add(name);
+  res.json({ success: true });
+});
+
 app.get("/api/actions", (req, res) => {
   const entries = actions.getAll();
   res.json({ success: true, message: entries });
@@ -157,6 +169,12 @@ app.post("/api/actions/delete", (req, res) => {
 app.post("/api/actions/rename", (req, res) => {
   const { id, newName } = req.body;
   actions.rename(newName, id);
+  res.json({ success: true });
+});
+
+app.post("/api/actions/add", (req, res) => {
+  const { name } = req.body;
+  actions.add(name);
   res.json({ success: true });
 });
 

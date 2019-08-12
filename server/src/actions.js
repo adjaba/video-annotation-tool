@@ -25,16 +25,13 @@ const Actions = {
       .all();
     return actions;
   },
-  add: (name, id) => {
-    const actions = db
-      .prepare(
-        `
-    insert into actions(actionName, id, deleted)
-    values (?, ?, ?);
-    from actions
+  add: name => {
+    db.prepare(
+      `
+    insert into actions(actionName, deleted)
+    values (?, ?);
     `
-      )
-      .run(name, id, 0);
+    ).run(name, 0);
   },
   rename: (name, id) => {
     db.prepare(
