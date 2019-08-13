@@ -8,6 +8,7 @@ import {
   Segment,
   Table,
   Button,
+  Icon,
   Checkbox,
   Input,
   Form
@@ -30,7 +31,11 @@ class AdminApp extends Component {
       actions: null,
       newEvent: null,
       newScene: null,
-      newAction: null
+      newAction: null,
+      editableEvents: false,
+      editableScenes: false,
+      editableActions: false,
+      hiddenEvents: false
     };
   }
 
@@ -89,10 +94,8 @@ class AdminApp extends Component {
   }
 
   async onSubmit(e, mode) {
-    console.log("HERE");
     e.preventDefault();
     const form = e.target;
-    const { newEvent, newAction, newScene } = this.state;
 
     if (mode === "events" || mode === "scenes" || mode === "actions") {
       await (await fetch("/api/" + mode + "/add", {
@@ -103,18 +106,13 @@ class AdminApp extends Component {
         body: JSON.stringify({
           name: this.state[mapping[mode]]
         })
-      }))
-        .json()
-        .then(message => {
-          console.log(message);
-        });
+      })).json();
 
       form.reset();
       this.reload();
     }
   }
   async toggleDelete(mode, id) {
-    console.log(mode, id, "toggleDelete");
     if (mode === "events" || mode === "scenes" || mode === "actions") {
       await (await fetch("/api/" + mode + "/delete", {
         method: "POST",
@@ -124,11 +122,7 @@ class AdminApp extends Component {
         body: JSON.stringify({
           id
         })
-      }))
-        .json()
-        .then(message => {
-          console.log(message);
-        });
+      })).json();
     }
     this.reload();
   }
@@ -144,11 +138,7 @@ class AdminApp extends Component {
           id,
           newName
         })
-      }))
-        .json()
-        .then(message => {
-          console.log(message);
-        });
+      })).json();
     }
     this.reload();
   }
@@ -164,53 +154,75 @@ class AdminApp extends Component {
           <Button>Annotate</Button>
         </Link>
         <Segment>
-          <Header>Events</Header>
-          <Table celled>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell>Event Name</Table.HeaderCell>
-                <Table.HeaderCell>Index</Table.HeaderCell>
-                <Table.HeaderCell>Deleted</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {(events || []).map(({ id, eventName, deleted }) => (
-                <Table.Row
-                  key={id}
-                  style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
-                >
-                  <Table.Cell>
-                    <Input
-                      value={eventName}
-                      onChange={(e, { value }) => {
-                        this.rename(id, value, "events");
-                      }}
-                    ></Input>
-                  </Table.Cell>
-                  <Table.Cell>{id}</Table.Cell>
-                  <Table.Cell>
-                    <Checkbox
-                      checked={!!+deleted}
-                      onChange={() => this.toggleDelete("events", id)}
-                    ></Checkbox>
-                  </Table.Cell>
+          <Header>
+            <Icon
+              name={this.state.hiddenEvents ? "angle right" : "angle down"}
+              onClick={() =>
+                this.setState({ hiddenEvents: !this.state.hiddenEvents })
+              }
+            ></Icon>
+            Events{" "}
+          </Header>
+          <div hidden={this.state.hiddenEvents}>
+            <Button
+              icon={this.state.editableEvents ? "lock" : "unlock"}
+              content={this.state.editableEvents ? "Lock" : "Make Edits"}
+              onClick={() =>
+                this.setState({ editableEvents: !this.state.editableEvents })
+              }
+            ></Button>
+            {/* TODO: Hide deleted?? <Button icon='eye' labelPosition='left' content="Show All"></Button> */}
+            <Table celled>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Event Name</Table.HeaderCell>
+                  <Table.HeaderCell>Index</Table.HeaderCell>
+                  <Table.HeaderCell>Deleted</Table.HeaderCell>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-          <Header disabled> Add a new event </Header>
-          <Form
-            style={{ maxWidth: 600 }}
-            onSubmit={e => this.onSubmit(e, "events")}
-          >
-            <Form.Input
-              label="Event Name:"
-              onChange={(e, { value }) => this.setState({ newEvent: value })}
-            ></Form.Input>
-            <Button type="submit">Add</Button>
-          </Form>
+              </Table.Header>
+              <Table.Body>
+                {(events || []).map(({ id, eventName, deleted }) => (
+                  <Table.Row
+                    key={id}
+                    style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
+                  >
+                    <Table.Cell>
+                      <Input
+                        transparent={!this.state.editableEvents}
+                        disabled={!this.state.editableEvents}
+                        value={eventName}
+                        onChange={(e, { value }) => {
+                          this.rename(id, value, "events");
+                        }}
+                        style={{ opacity: 1 }}
+                      ></Input>
+                    </Table.Cell>
+                    <Table.Cell>{id}</Table.Cell>
+                    <Table.Cell>
+                      <Checkbox
+                        checked={!!+deleted}
+                        onChange={() => this.toggleDelete("events", id)}
+                      ></Checkbox>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+            <Header disabled> Add a new event </Header>
+            <Form
+              style={{ maxWidth: 600 }}
+              onSubmit={e => this.onSubmit(e, "events")}
+            >
+              <Form.Input
+                label="Event Name:"
+                onChange={(e, { value }) => this.setState({ newEvent: value })}
+              ></Form.Input>
+              <Button type="submit">Add</Button>
+            </Form>
+          </div>
         </Segment>
         <Segment>
+          <Header>Scenes</Header>
           <Table celled>
             <Table.Header>
               <Table.Row>
@@ -227,6 +239,7 @@ class AdminApp extends Component {
                 >
                   <Table.Cell>
                     <Input
+                      transparent
                       value={sceneName}
                       onChange={(e, { value }) => {
                         this.rename(id, value, "events");
@@ -257,6 +270,7 @@ class AdminApp extends Component {
           </Form>
         </Segment>
         <Segment>
+          <Header>Actions</Header>
           <Table celled>
             <Table.Header>
               <Table.Row>

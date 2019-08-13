@@ -15,7 +15,8 @@
     "semantic-ui-react": "^0.87.3",
     "sortablejs": "1.6.1",
     "video-react": "^0.14.0",
-    "videojs-markers": "^1.0.1"
+    "videojs-markers": "^1.0.1",
+    "xml2json": "^0.11.2"
   },
   "scripts": {
     "start": "react-scripts start",

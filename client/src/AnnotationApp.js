@@ -23,6 +23,7 @@ import {
   Divider
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
+// import { init, getMediaInfo } from "./js/MediaInfoPort"
 
 import uniqueId from "lodash/uniqueId";
 import { EventEmitter } from "events";
@@ -62,7 +63,6 @@ import { timer } from "rxjs";
 var URL = window.URL || window.webkitURL;
 // var mediaInfo = require('mediainfo');
 // var parser = require('xml2json');
-// const fs = require('fs');
 // var processing = false;
 
 var videoJsOptions = {
