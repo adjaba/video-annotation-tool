@@ -126,6 +126,13 @@ app.post("/api/events/rename", (req, res) => {
   res.json({ success: true });
 });
 
+app.post("/api/events/rename-bulk", (req, res) => {
+  const { renames } = req.body;
+  Object.keys(renames).forEach(id => events.rename(renames[id], id));
+  res.json({ success: true });
+  console.log(events.getAll());
+});
+
 app.post("/api/events/add", (req, res) => {
   const { name } = req.body;
   events.add(name);

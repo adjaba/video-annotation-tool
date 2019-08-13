@@ -15,12 +15,17 @@ import {
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
-const mapping = {
+const newMapping = {
   events: "newEvent",
   actions: "newAction",
   scenes: "newScene"
 };
 
+const renameMapping = {
+  events: "eventRenames",
+  action: "actionRenames",
+  scenes: "sceneRenames"
+};
 class AdminApp extends Component {
   constructor(props) {
     super(props);
@@ -35,7 +40,8 @@ class AdminApp extends Component {
       editableEvents: false,
       editableScenes: false,
       editableActions: false,
-      hiddenEvents: false
+      hiddenEvents: false,
+      eventRenames: {}
     };
   }
 
@@ -104,7 +110,7 @@ class AdminApp extends Component {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: this.state[mapping[mode]]
+          name: this.state[newMapping[mode]]
         })
       })).json();
 
@@ -139,8 +145,39 @@ class AdminApp extends Component {
           newName
         })
       })).json();
+      this.reload();
     }
-    this.reload();
+  }
+
+  async batchRename(mode) {
+    if (mode === "events" || mode === "scenes" || mode === "actions") {
+      await (await fetch("/api/" + mode + "/rename-bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ renames: this.state[renameMapping[mode]] })
+      })).json();
+      this.reload();
+      this.setState({
+        [renameMapping[mode]]: {}
+      });
+      console.log("renamed", this.state[renameMapping[mode]]);
+      // const resp = await Promise.all(
+      //   Object.keys(renameMapping[mode]).map(id =>
+      //     fetch("/api/" + mode + "/rename", {
+      //       method: "POST",
+      //       headers: {
+      //         "Content-Type": "application/json"
+      //       },
+      //       body: JSON.stringify({
+      //         id,
+      //         newName: renameMapping[mode][id]
+      //       })
+      //   })).json()}
+      // ))
+    }
+    // this.reload();
   }
 
   render() {
@@ -171,6 +208,12 @@ class AdminApp extends Component {
                 this.setState({ editableEvents: !this.state.editableEvents })
               }
             ></Button>
+            <Button
+              icon="save"
+              disabled={Object.keys(this.state.eventRenames).length === 0}
+              onClick={() => this.batchRename("events")}
+              content="Apply name changes"
+            ></Button>
             {/* TODO: Hide deleted?? <Button icon='eye' labelPosition='left' content="Show All"></Button> */}
             <Table celled>
               <Table.Header>
@@ -181,7 +224,7 @@ class AdminApp extends Component {
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {(events || []).map(({ id, eventName, deleted }) => (
+                {(events || []).map(({ id, eventName, deleted }, i) => (
                   <Table.Row
                     key={id}
                     style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
@@ -192,7 +235,15 @@ class AdminApp extends Component {
                         disabled={!this.state.editableEvents}
                         value={eventName}
                         onChange={(e, { value }) => {
-                          this.rename(id, value, "events");
+                          var eventRenames = this.state.eventRenames;
+                          var events = this.state.events;
+                          events[i]["eventName"] = value;
+
+                          eventRenames[id] = value;
+                          this.setState({
+                            eventRenames,
+                            events
+                          });
                         }}
                         style={{ opacity: 1 }}
                       ></Input>
