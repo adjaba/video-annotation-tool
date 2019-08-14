@@ -16,6 +16,7 @@ const videos = require("./videos");
 const events = require("./events");
 const actions = require("./actions");
 const scenes = require("./scenes");
+const { setup, checkLoginMiddleware, authHandler } = require("./auth");
 // const projects = require('./queries/projects');
 // const images = require('./queries/images');
 // const mlmodels = require('./queries/mlmodels');
@@ -28,54 +29,56 @@ const UPLOADS_PATH =
 
 const app = express();
 
-// setup(app);
+setup(app);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const uploads = multer({
-  storage: multer.diskStorage({
-    destination: async (req, file, cb) => {
-      const { projectId } = req.params;
-      try {
-        if (!projects.get(projectId)) {
-          throw new Error("No such projectId.");
-        }
-        const dest = path.join(UPLOADS_PATH, projectId);
-        try {
-          await fs.mkdir(dest);
-        } catch (err) {}
-        cb(null, dest);
-      } catch (err) {
-        cb(err);
-      }
-    },
-    filename: (req, file, cb) => {
-      try {
-        const { projectId } = req.params;
-        const filename = file.originalname;
+// const uploads = multer({
+//   storage: multer.diskStorage({
+//     destination: async (req, file, cb) => {
+//       const { projectId } = req.params;
+//       try {
+//         if (!projects.get(projectId)) {
+//           throw new Error("No such projectId.");
+//         }
+//         const dest = path.join(UPLOADS_PATH, projectId);
+//         try {
+//           await fs.mkdir(dest);
+//         } catch (err) {}
+//         cb(null, dest);
+//       } catch (err) {
+//         cb(err);
+//       }
+//     },
+//     filename: (req, file, cb) => {
+//       try {
+//         const { projectId } = req.params;
+//         const filename = file.originalname;
 
-        if (req.reference) {
-          const ext = path.extname(filename);
-          const name = `_reference${ext}`;
-          const referenceLink = `/uploads/${projectId}/${name}`;
-          projects.updateReference(projectId, referenceLink);
-          cb(null, name);
-        } else {
-          const id = images.addImageStub(projectId, filename, null);
-          const newName = images.updateLink(id, { projectId, filename });
-          cb(null, newName);
-        }
-      } catch (err) {
-        cb(err);
-      }
-    }
-  })
-});
+//         if (req.reference) {
+//           const ext = path.extname(filename);
+//           const name = `_reference${ext}`;
+//           const referenceLink = `/uploads/${projectId}/${name}`;
+//           projects.updateReference(projectId, referenceLink);
+//           cb(null, name);
+//         } else {
+//           const id = images.addImageStub(projectId, filename, null);
+//           const newName = images.updateLink(id, { projectId, filename });
+//           cb(null, newName);
+//         }
+//       } catch (err) {
+//         cb(err);
+//       }
+//     }
+//   })
+// });
 
 // app.post('/api/uploads/:projectId', uploads.array('videos'), (req, res) => {
 //     res.json({ success: true });
 // })
+
+app.get("/api/auth", authHandler);
 
 app.post("/api/start", (req, res) => {
   const { videoName } = req.body;
@@ -104,7 +107,7 @@ app.post("/api/save", (req, res) => {
   // console.log(videos.getAll());
 });
 
-app.get("/api/videos", (req, res) => {
+app.get("/api/videos", checkLoginMiddleware, (req, res) => {
   const entries = videos.getAll();
   res.json({ success: true, message: entries });
 });
@@ -114,26 +117,26 @@ app.get("/api/events", (req, res) => {
   res.json({ success: true, message: entries });
 });
 
-app.post("/api/events/delete", (req, res) => {
+app.post("/api/events/delete", checkLoginMiddleware, (req, res) => {
   const { id } = req.body;
   events.toggleDelete(id);
   res.json({ success: true });
 });
 
-app.post("/api/events/rename", (req, res) => {
+app.post("/api/events/rename", checkLoginMiddleware, (req, res) => {
   const { id, newName } = req.body;
   events.rename(newName, id);
   res.json({ success: true });
 });
 
-app.post("/api/events/rename-bulk", (req, res) => {
+app.post("/api/events/rename-bulk", checkLoginMiddleware, (req, res) => {
   const { renames } = req.body;
   Object.keys(renames).forEach(id => events.rename(renames[id], id));
   res.json({ success: true });
   // console.log(events.getAll());
 });
 
-app.post("/api/events/add", (req, res) => {
+app.post("/api/events/add", checkLoginMiddleware, (req, res) => {
   const { name } = req.body;
   events.add(name);
   res.json({ success: true });
@@ -144,26 +147,26 @@ app.get("/api/scenes", (req, res) => {
   res.json({ success: true, message: entries });
 });
 
-app.post("/api/scenes/delete", (req, res) => {
+app.post("/api/scenes/delete", checkLoginMiddleware, (req, res) => {
   const { id } = req.body;
   scenes.toggleDelete(id);
   res.json({ success: true });
 });
 
-app.post("/api/scenes/rename", (req, res) => {
+app.post("/api/scenes/rename", checkLoginMiddleware, (req, res) => {
   const { id, newName } = req.body;
   scenes.rename(newName, id);
   res.json({ success: true });
 });
 
-app.post("/api/scenes/rename-bulk", (req, res) => {
+app.post("/api/scenes/rename-bulk", checkLoginMiddleware, (req, res) => {
   const { renames } = req.body;
   Object.keys(renames).forEach(id => scenes.rename(renames[id], id));
   res.json({ success: true });
   // console.log(scenes.getAll());
 });
 
-app.post("/api/scenes/add", (req, res) => {
+app.post("/api/scenes/add", checkLoginMiddleware, (req, res) => {
   const { name } = req.body;
   scenes.add(name);
   res.json({ success: true });
@@ -174,13 +177,13 @@ app.get("/api/actions", (req, res) => {
   res.json({ success: true, message: entries });
 });
 
-app.post("/api/actions/delete", (req, res) => {
+app.post("/api/actions/delete", checkLoginMiddleware, (req, res) => {
   const { id } = req.body;
   actions.toggleDelete(id);
   res.json({ success: true });
 });
 
-app.post("/api/actions/rename", (req, res) => {
+app.post("/api/actions/rename", checkLoginMiddleware, (req, res) => {
   const { id, newName } = req.body;
   actions.rename(newName, id);
   res.json({ success: true });

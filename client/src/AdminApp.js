@@ -56,8 +56,14 @@ class AdminApp extends Component {
   async reload() {
     console.log("HEY");
     try {
-      const videos = await (await fetch("/api/videos/")).json();
-      console.log("SUCCESS", videos);
+      const r = await fetch("/api/videos/");
+
+      if (!r.ok && r.status === 401) {
+        window.location = "/admin/login/";
+        return;
+      }
+
+      const videos = await r.json();
       this.setState({
         videos: videos["message"]
       });

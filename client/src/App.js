@@ -3,16 +3,16 @@ import { Route, BrowserRouter as Router } from "react-router-dom";
 
 import AnnotationApp from "./AnnotationApp";
 import AdminApp from "./AdminApp";
-// import FPSpage from "./FPSpage";
+import LoginPage from "./LoginPage";
 
 class App extends Component {
   render() {
     return (
       <Router>
         <Fragment>
-          <Route path="/admin" component={AdminApp} />
+          <Route exact path="/admin" component={AdminApp} />
           <Route exact path="/" component={AnnotationApp} />
-          <Route path='/fps'render={() => {window.location.href="/html/index.html"}}/>
+          <Route path="/admin/login" component={LoginPage} />
         </Fragment>
       </Router>
     );
