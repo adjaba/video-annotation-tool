@@ -214,6 +214,7 @@ class AnnotationApp extends Component {
     // if video or json updated
     if (videoNameJSONUpdated) {
       // if video and json exists
+      console.log(this.state.jsonName === "", this.state.jsonName);
       if (this.state.videoName && this.state.json) {
         // if video and json match
         console.log(this.state.json);
@@ -240,6 +241,8 @@ class AnnotationApp extends Component {
             ],
             historyIndex: 0
           });
+        } else if (this.state.jsonName === "") {
+          // if json was generated from before do nothing until new json is generated
         } else {
           this.setState({
             videoEndSecs: null,
@@ -250,8 +253,6 @@ class AnnotationApp extends Component {
             "Upload a video with the correct filename or upload the correct json file."
           );
         }
-      } else if (this.state.jsonName === "") {
-        // if json was generated from before do nothing until new json is generated
       } else {
         this.setState({
           videoEndSecs: null,
@@ -1056,7 +1057,8 @@ class AnnotationApp extends Component {
     const content = !ready ? (
       <div>
         <Header as="h2" inverted>
-          Please complete uploading the video and json file.
+          Please complete uploading the video. If you would like to resume
+          editing from a JSON, please also upload the JSON file.
         </Header>
       </div>
     ) : !editReady ? (
