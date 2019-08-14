@@ -1,30 +1,30 @@
 Arguments: 
-  C:\Program Files (x86)\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js add node_expat
+  /usr/bin/node /usr/share/yarn/bin/yarn.js add jquery-3.3.1
 
 PATH: 
-  C:\ProgramData\DockerDesktop\version-bin;C:\Program Files\Docker\Docker\Resources\bin;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\iCLS\;C:\Program Files\Intel\Intel(R) Management Engine Components\iCLS\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA NGX;C:\Program Files (x86)\nodejs\;C:\Program Files (x86)\Git\cmd;C:\Program Files (x86)\Yarn\bin\;C:\Users\jabaandrea\AppData\Local\Programs\Python\Python37\Scripts\;C:\Users\jabaandrea\AppData\Local\Programs\Python\Python37\;C:\Users\jabaandrea\AppData\Local\Microsoft\WindowsApps;C:\Users\jabaandrea\AppData\Local\GitHubDesktop\bin;C:\Users\jabaandrea\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\jabaandrea\AppData\Roaming\npm;C:\Program Files (x86)\nodejs;C:\Program Files (x86)\Git;C:\Users\jabaandrea\AppData\Local\GitHubDesktop\app-2.0.4\resources\app\git\cmd;C:\Program Files (x86)\Git\cmd\git.exe;C:\Users\jabaandrea\AppData\Local\Yarn\bin;C:\Program Files (x86)\heroku\bin;C:\Python27\Python.exe;
+  /home/andrea/.local/bin:/home/andrea/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 
 Yarn version: 
   1.16.0
 
 Node version: 
-  10.16.0
+  8.10.0
 
 Platform: 
-  win32 ia32
+  linux x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/node_expat: Not found
-      at Request.params.callback [as _callback] (C:\Program Files (x86)\Yarn\lib\cli.js:65200:18)
-      at Request.self.callback (C:\Program Files (x86)\Yarn\lib\cli.js:129590:22)
-      at Request.emit (events.js:198:13)
-      at Request.<anonymous> (C:\Program Files (x86)\Yarn\lib\cli.js:130562:10)
-      at Request.emit (events.js:198:13)
-      at IncomingMessage.<anonymous> (C:\Program Files (x86)\Yarn\lib\cli.js:130484:12)
-      at Object.onceWrapper (events.js:286:20)
-      at IncomingMessage.emit (events.js:203:15)
-      at endReadableNT (_stream_readable.js:1129:12)
-      at process._tickCallback (internal/process/next_tick.js:63:19)
+  Error: https://registry.yarnpkg.com/jquery-3.3.1: Not found
+      at Request.params.callback [as _callback] (/usr/share/yarn/lib/cli.js:66091:18)
+      at Request.self.callback (/usr/share/yarn/lib/cli.js:129590:22)
+      at emitTwo (events.js:126:13)
+      at Request.emit (events.js:214:7)
+      at Request.<anonymous> (/usr/share/yarn/lib/cli.js:130562:10)
+      at emitOne (events.js:116:13)
+      at Request.emit (events.js:211:7)
+      at IncomingMessage.<anonymous> (/usr/share/yarn/lib/cli.js:130484:12)
+      at Object.onceWrapper (events.js:313:30)
+      at emitNone (events.js:111:20)
 
 npm manifest: 
   {
