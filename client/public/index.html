@@ -132,8 +132,46 @@
             r.readAsArrayBuffer(blob);
           } else {
             finalResult = mi.inform();
-            console.log(finalResult);
-            console.log(x2js.xml_str2json(finalResult));
+            finalJson = x2js.xml_str2json(finalResult);
+
+            console.log(finalJson);
+            var frameCount =
+              finalJson["MediaInfo"]["media"]["track"][1]["FrameCount"];
+            var duration =
+              finalJson["MediaInfo"]["media"]["track"][1]["Duration"];
+            console.log(frameCount, duration);
+            var blankObj = JSON.stringify({
+              database: {
+                [file.name.substring(0, file.name.lastIndexOf("."))]: {
+                  duration: duration,
+                  fps: frameCount / duration,
+                  annotations: []
+                }
+              }
+            });
+            console.log(blankObj);
+            const e = new Event("input", { bubbles: true });
+            const element = document.querySelector("#input_json_blank");
+            const valueSetter = Object.getOwnPropertyDescriptor(
+              element,
+              "value"
+            ).set;
+            const prototype = Object.getPrototypeOf(element);
+            const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+              prototype,
+              "value"
+            ).set;
+
+            if (valueSetter && valueSetter !== prototypeValueSetter) {
+              prototypeValueSetter.call(element, blankObj);
+            } else {
+              valueSetter.call(element, blankObj);
+            }
+            element.dispatchEvent(e);
+            // document.getElementById("input_json_blank").value = blankObj;
+            // var event = new Event('input');
+            // document.getElementById("input_json_blank").dispatchEvent(event);
+            console.log(document.getElementById("input_json_blank").value);
             mi.close();
             processingDone();
           }

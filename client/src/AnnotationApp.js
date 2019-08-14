@@ -128,6 +128,7 @@ class AnnotationApp extends Component {
     this.playSelectedFile = this.playSelectedFile.bind(this);
     this.jumpTo = this.jumpTo.bind(this);
     this.parseJSONInput = this.parseJSONInput.bind(this);
+    this.parseJSONBlank = this.parseJSONBlank.bind(this);
     // this.frameToSecs = this.frameToSecs.bind(this);
     this.playSection = this.playSection.bind(this);
     this.videoPreviewChange = this.videoPreviewChange.bind(this);
@@ -215,6 +216,8 @@ class AnnotationApp extends Component {
       // if video and json exists
       if (this.state.videoName && this.state.json) {
         // if video and json match
+        console.log(this.state.json);
+        console.log(typeof this.state.json);
         console.log("json and video present and change detected");
         if (
           Object.keys(this.state.json["database"]).indexOf(
@@ -247,6 +250,8 @@ class AnnotationApp extends Component {
             "Upload a video with the correct filename or upload the correct json file."
           );
         }
+      } else if (this.state.jsonName === "") {
+        // if json was generated from before do nothing until new json is generated
       } else {
         this.setState({
           videoEndSecs: null,
@@ -536,6 +541,13 @@ class AnnotationApp extends Component {
         0,
         event.target.files[0].name.lastIndexOf(".")
       )
+    });
+  }
+
+  parseJSONBlank(value) {
+    this.setState({
+      json: JSON.parse(value),
+      jsonName: ""
     });
   }
 
@@ -1333,6 +1345,15 @@ class AnnotationApp extends Component {
                 accept=".json, application/json"
                 onChange={e => {
                   this.parseJSONInput(e);
+                }}
+              />
+              <input
+                style={{ display: "none" }}
+                id="input_json_blank"
+                type="text"
+                onChange={e => {
+                  console.log(" you have reached me");
+                  this.parseJSONBlank(e.target.value);
                 }}
               />
             </div>

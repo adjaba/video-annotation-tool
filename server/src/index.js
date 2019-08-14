@@ -101,7 +101,7 @@ app.post("/api/save", (req, res) => {
     console.log("updated entry with id", id);
     res.json({ success: true, message: currentJson });
   }
-  console.log(videos.getAll());
+  // console.log(videos.getAll());
 });
 
 app.get("/api/videos", (req, res) => {
@@ -130,7 +130,7 @@ app.post("/api/events/rename-bulk", (req, res) => {
   const { renames } = req.body;
   Object.keys(renames).forEach(id => events.rename(renames[id], id));
   res.json({ success: true });
-  console.log(events.getAll());
+  // console.log(events.getAll());
 });
 
 app.post("/api/events/add", (req, res) => {
@@ -160,7 +160,7 @@ app.post("/api/scenes/rename-bulk", (req, res) => {
   const { renames } = req.body;
   Object.keys(renames).forEach(id => scenes.rename(renames[id], id));
   res.json({ success: true });
-  console.log(scenes.getAll());
+  // console.log(scenes.getAll());
 });
 
 app.post("/api/scenes/add", (req, res) => {
@@ -190,7 +190,7 @@ app.post("/api/actions/rename-bulk", (req, res) => {
   const { renames } = req.body;
   Object.keys(renames).forEach(id => actions.rename(renames[id], id));
   res.json({ success: true });
-  console.log(actions.getAll());
+  // console.log(actions.getAll());
 });
 
 app.post("/api/actions/add", (req, res) => {
