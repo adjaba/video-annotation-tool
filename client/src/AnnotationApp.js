@@ -143,6 +143,7 @@ class AnnotationApp extends Component {
     this.markers = this.markers.bind(this);
     this.id = 0;
     this.events = {};
+    this.eventpool = {};
     this.scenes = {}; // complete scenes
     this.scenepool = {}; // undeleted scenes (for options)
     this.actions = {};
@@ -161,8 +162,12 @@ class AnnotationApp extends Component {
       const eventsR = await (await fetch("/api/events")).json();
       console.log("SUCCESS event fetch", eventsR);
       eventsR["message"].forEach(obj => {
-        var { id, eventName } = obj;
+        var { id, eventName, deleted } = obj;
         this.events[id] = eventName;
+
+        if (!+deleted) {
+          this.eventpool[id] = eventName;
+        }
       });
       console.log(this.events, events);
     } catch (error) {
@@ -1459,18 +1464,20 @@ class AnnotationApp extends Component {
                       search
                       selection
                       onChange={(e, { value }) => this.setEvent(value)}
-                      options={Object.keys(this.events).map(id =>
+                      options={Object.keys(this.eventpool).map(id =>
                         Object({
                           key: id,
-                          text: this.events[id],
-                          value: this.events[id]
+                          text: this.eventpool[id],
+                          value: this.eventpool[id]
                         })
                       )}
                       defaultValue={
                         editReady && thereAreEvents
-                          ? currentMetadata["annotations"][
-                              this.state.segmentIndex
-                            ]["labelEvent"]
+                          ? this.events[
+                              currentMetadata["annotations"][
+                                this.state.segmentIndex
+                              ]["labelEventIdx"]
+                            ] //TODO: labelEventIndex?
                           : null
                       }
                     ></Dropdown>

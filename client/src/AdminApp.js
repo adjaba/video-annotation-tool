@@ -22,9 +22,9 @@ const newMapping = {
 };
 
 const renameMapping = {
-  events: "eventRenames",
-  action: "actionRenames",
-  scenes: "sceneRenames"
+  events: "eventsRename",
+  action: "actionsRename",
+  scenes: "scenesRename"
 };
 class AdminApp extends Component {
   constructor(props) {
@@ -41,7 +41,11 @@ class AdminApp extends Component {
       editableScenes: false,
       editableActions: false,
       hiddenEvents: false,
-      eventRenames: {}
+      hiddenScenes: false,
+      hiddenActions: false,
+      eventsRename: {},
+      scenesRename: {},
+      actionsRename: {}
     };
   }
 
@@ -158,30 +162,118 @@ class AdminApp extends Component {
         },
         body: JSON.stringify({ renames: this.state[renameMapping[mode]] })
       })).json();
-      this.reload();
       this.setState({
         [renameMapping[mode]]: {}
       });
-      console.log("renamed", this.state[renameMapping[mode]]);
-      // const resp = await Promise.all(
-      //   Object.keys(renameMapping[mode]).map(id =>
-      //     fetch("/api/" + mode + "/rename", {
-      //       method: "POST",
-      //       headers: {
-      //         "Content-Type": "application/json"
-      //       },
-      //       body: JSON.stringify({
-      //         id,
-      //         newName: renameMapping[mode][id]
-      //       })
-      //   })).json()}
-      // ))
+      this.reload();
     }
-    // this.reload();
   }
 
+  renderEventSceneAction() {
+    var modes = ["events", "scenes", "actions"];
+    var capitalizedMode = mode => mode.charAt(0).toUpperCase() + mode.slice(1);
+    var hideToggle = mode => "hidden" + capitalizedMode(mode);
+    var editToggle = mode => "editable" + capitalizedMode(mode);
+    var renameList = mode => mode + "Rename";
+    var entryName = mode => mode.slice(0, -1) + "Name";
+
+    return modes.map(mode => (
+      <Segment>
+        <Header className={this.state[hideToggle(mode)] ? "collapsed" : ""}>
+          <Icon
+            name={this.state[hideToggle(mode)] ? "angle right" : "angle down"}
+            onClick={() =>
+              this.setState({
+                [hideToggle(mode)]: !this.state[hideToggle(mode)]
+              })
+            }
+          ></Icon>
+          {capitalizedMode(mode)}{" "}
+        </Header>
+        <div hidden={this.state[hideToggle(mode)]}>
+          <Button
+            icon={this.state[editToggle(mode)] ? "lock" : "unlock"}
+            content={this.state[editToggle(mode)] ? "Lock" : "Make Edits"}
+            onClick={() =>
+              this.setState({
+                [editToggle(mode)]: !this.state[editToggle(mode)]
+              })
+            }
+          ></Button>
+          <Button
+            icon="save"
+            disabled={Object.keys(this.state[renameList(mode)]).length === 0}
+            onClick={() => this.batchRename(mode)}
+            content="Apply name changes"
+          ></Button>
+          <Table celled>
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell>Name</Table.HeaderCell>
+                <Table.HeaderCell>Index</Table.HeaderCell>
+                <Table.HeaderCell>Deleted</Table.HeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {(this.state[mode] || []).map(
+                ({ id, [entryName(mode)]: name, deleted }, i) => (
+                  <Table.Row
+                    key={id}
+                    style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
+                  >
+                    <Table.Cell>
+                      <Input
+                        transparent={!this.state[editToggle(mode)]}
+                        disabled={!this.state[editToggle(mode)]}
+                        value={name}
+                        onChange={(e, { value }) => {
+                          var renameChanges = this.state[renameList(mode)];
+                          var entries = this.state[mode];
+                          entries[i][entryName(mode)] = value;
+
+                          renameChanges[id] = value;
+                          this.setState({
+                            [renameList(mode)]: renameChanges,
+                            [mode]: entries
+                          });
+                        }}
+                        style={{ opacity: 1 }}
+                      ></Input>
+                    </Table.Cell>
+                    <Table.Cell>{id}</Table.Cell>
+                    <Table.Cell>
+                      <Checkbox
+                        disabled={!this.state[editToggle(mode)]}
+                        checked={!!+deleted}
+                        onChange={() => this.toggleDelete(mode, id)}
+                      ></Checkbox>
+                    </Table.Cell>
+                  </Table.Row>
+                )
+              )}
+            </Table.Body>
+          </Table>
+          <Header disabled> Add a new {mode.slice(0, -1)} </Header>
+          <Form
+            style={{ maxWidth: 600 }}
+            onSubmit={e => this.onSubmit(e, mode)}
+          >
+            <Form.Input
+              label={capitalizedMode(mode).slice(0, -1) + " Name:"}
+              onChange={(e, { value }) =>
+                this.setState({
+                  ["new" + capitalizedMode(mode).slice(0, -1)]: value
+                })
+              }
+            ></Form.Input>
+            <Button type="submit">Add</Button>
+          </Form>
+        </div>
+      </Segment>
+    ));
+  }
   render() {
-    const { videos, events, scenes, actions } = this.state;
+    const { videos } = this.state;
     return (
       <div
         style={{ maxWidth: "1200px", marginLeft: "auto", marginRight: "auto" }}
@@ -190,7 +282,8 @@ class AdminApp extends Component {
         <Link to="/">
           <Button>Annotate</Button>
         </Link>
-        <Segment>
+        {this.renderEventSceneAction()}
+        {/* <Segment>
           <Header>
             <Icon
               name={this.state.hiddenEvents ? "angle right" : "angle down"}
@@ -210,11 +303,10 @@ class AdminApp extends Component {
             ></Button>
             <Button
               icon="save"
-              disabled={Object.keys(this.state.eventRenames).length === 0}
+              disabled={Object.keys(this.state.eventsRename).length === 0}
               onClick={() => this.batchRename("events")}
               content="Apply name changes"
             ></Button>
-            {/* TODO: Hide deleted?? <Button icon='eye' labelPosition='left' content="Show All"></Button> */}
             <Table celled>
               <Table.Header>
                 <Table.Row>
@@ -235,13 +327,13 @@ class AdminApp extends Component {
                         disabled={!this.state.editableEvents}
                         value={eventName}
                         onChange={(e, { value }) => {
-                          var eventRenames = this.state.eventRenames;
+                          var eventsRename = this.state.eventsRename;
                           var events = this.state.events;
                           events[i]["eventName"] = value;
 
-                          eventRenames[id] = value;
+                          eventsRename[id] = value;
                           this.setState({
-                            eventRenames,
+                            eventsRename,
                             events
                           });
                         }}
@@ -251,6 +343,7 @@ class AdminApp extends Component {
                     <Table.Cell>{id}</Table.Cell>
                     <Table.Cell>
                       <Checkbox
+                        disabled={!this.state.editableEvents}
                         checked={!!+deleted}
                         onChange={() => this.toggleDelete("events", id)}
                       ></Checkbox>
@@ -273,100 +366,161 @@ class AdminApp extends Component {
           </div>
         </Segment>
         <Segment>
-          <Header>Scenes</Header>
-          <Table celled>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell>Scene Name</Table.HeaderCell>
-                <Table.HeaderCell>Index</Table.HeaderCell>
-                <Table.HeaderCell>Deleted</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {(scenes || []).map(({ id, sceneName, deleted }) => (
-                <Table.Row
-                  key={id}
-                  style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
-                >
-                  <Table.Cell>
-                    <Input
-                      transparent
-                      value={sceneName}
-                      onChange={(e, { value }) => {
-                        this.rename(id, value, "events");
-                      }}
-                    ></Input>
-                  </Table.Cell>
-                  <Table.Cell>{id}</Table.Cell>
-                  <Table.Cell>
-                    <Checkbox
-                      checked={!!+deleted}
-                      onChange={() => this.toggleDelete("scenes", id)}
-                    ></Checkbox>
-                  </Table.Cell>
+        <Header>
+            <Icon
+              name={this.state.hiddenScenes ? "angle right" : "angle down"}
+              onClick={() =>
+                this.setState({ hiddenScenes: !this.state.hiddenScenes })
+              }
+            ></Icon>
+            Scenes{" "}
+          </Header>
+          <div hidden={this.state.hiddenScenes}>
+            <Button
+              icon={this.state.editableScenes ? "lock" : "unlock"}
+              content={this.state.editableScenes ? "Lock" : "Make Edits"}
+              onClick={() =>
+                this.setState({ editableScenes: !this.state.editableScenes })
+              }
+            ></Button>
+            <Button
+              icon="save"
+              disabled={Object.keys(this.state.scenesRename).length === 0}
+              onClick={() => this.batchRename("scenes")}
+              content="Apply name changes"
+            ></Button>
+            <Table celled>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Scene Name</Table.HeaderCell>
+                  <Table.HeaderCell>Index</Table.HeaderCell>
+                  <Table.HeaderCell>Deleted</Table.HeaderCell>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-          <Header disabled> Add a new scene </Header>
-          <Form
-            style={{ maxWidth: 600 }}
-            onSubmit={e => this.onSubmit(e, "scenes")}
-          >
-            <Form.Input
-              label="Scene Name:"
-              onChange={(e, { value }) => this.setState({ newScene: value })}
-            ></Form.Input>
-            <Button type="submit">Add</Button>
-          </Form>
+              </Table.Header>
+              <Table.Body>
+                {(scenes || []).map(({ id, sceneName, deleted , i}) => (
+                  <Table.Row
+                    key={id}
+                    style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
+                  >
+                    <Table.Cell>
+                      <Input
+                        transparent={!this.state.editableScenes}
+                        disabled={!this.state.editableScenes}
+                        value={sceneName}
+                        onChange={(e, { value }) => {
+                          var scenesRename = this.state.scenesRename;
+                          var scenes = this.state.scenes;
+                          scenes[i]["sceneName"] = value;
+
+                          scenesRename[id] = value;
+                          this.setState({
+                            scenesRename,
+                            scenes
+                          });
+                        }}
+                        style={{ opacity: 1 }}
+                      ></Input>
+                    </Table.Cell>
+                    <Table.Cell>{id}</Table.Cell>
+                    <Table.Cell>
+                      <Checkbox
+                        disabled={!this.state.editableScenes}
+                        checked={!!+deleted}
+                        onChange={() => this.toggleDelete("scenes", id)}
+                      ></Checkbox>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+            <Header disabled> Add a new scene </Header>
+            <Form
+              style={{ maxWidth: 600 }}
+              onSubmit={e => this.onSubmit(e, "scenes")}
+            >
+              <Form.Input
+                label="Scene Name:"
+                onChange={(e, { value }) => this.setState({ newScene: value })}
+              ></Form.Input>
+              <Button type="submit">Add</Button>
+            </Form>
+          </div>
         </Segment>
         <Segment>
           <Header>Actions</Header>
-          <Table celled>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell>Action Name</Table.HeaderCell>
-                <Table.HeaderCell>Index</Table.HeaderCell>
-                <Table.HeaderCell>Deleted</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {(actions || []).map(({ id, actionName, deleted }) => (
-                <Table.Row
-                  key={id}
-                  style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
-                >
-                  <Table.Cell>
-                    <Input
-                      value={actionName}
-                      onChange={(e, { value }) => {
-                        this.rename(id, value, "events");
-                      }}
-                    ></Input>
-                  </Table.Cell>
-                  <Table.Cell>{id}</Table.Cell>
-                  <Table.Cell>
-                    <Checkbox
-                      checked={!!+deleted}
-                      onChange={() => this.toggleDelete("actions", id)}
-                    ></Checkbox>
-                  </Table.Cell>
+          <div hidden={this.state.hiddenActions}>
+            <Button
+              icon={this.state.editableActions ? "lock" : "unlock"}
+              content={this.state.editableActions ? "Lock" : "Make Edits"}
+              onClick={() =>
+                this.setState({ editableActions: !this.state.editableActions })
+              }
+            ></Button>
+            <Button
+              icon="save"
+              disabled={Object.keys(this.state.actionsRename).length === 0}
+              onClick={() => this.batchRename("actions")}
+              content="Apply name changes"
+            ></Button>
+            <Table celled>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Action Name</Table.HeaderCell>
+                  <Table.HeaderCell>Index</Table.HeaderCell>
+                  <Table.HeaderCell>Deleted</Table.HeaderCell>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-          <Header disabled> Add a new action </Header>
-          <Form
-            style={{ maxWidth: 600 }}
-            onSubmit={e => this.onSubmit(e, "actions")}
-          >
-            <Form.Input
-              label="Action Name:"
-              onChange={(e, { value }) => this.setState({ newAction: value })}
-            ></Form.Input>
-            <Button type="submit">Add</Button>
-          </Form>
-        </Segment>
+              </Table.Header>
+              <Table.Body>
+                {(actions || []).map(({ id, actionName, deleted }, i) => (
+                  <Table.Row
+                    key={id}
+                    style={{ backgroundColor: !!+deleted ? "#ddd" : "#fff" }}
+                  >
+                    <Table.Cell>
+                      <Input
+                        transparent={!this.state.editableActions}
+                        disabled={!this.state.editableActions}
+                        value={actionName}
+                        onChange={(e, { value }) => {
+                          var actionsRename = this.state.actionsRename;
+                          var actions = this.state.actions;
+                          actions[i]["actionName"] = value;
+
+                          actionsRename[id] = value;
+                          this.setState({
+                            actionsRename,
+                            actions
+                          });
+                        }}
+                        style={{ opacity: 1 }}
+                      ></Input>
+                    </Table.Cell>
+                    <Table.Cell>{id}</Table.Cell>
+                    <Table.Cell>
+                      <Checkbox
+                        disabled={!this.state.editableActions}
+                        checked={!!+deleted}
+                        onChange={() => this.toggleDelete("actions", id)}
+                      ></Checkbox>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+            <Header disabled> Add a new action </Header>
+            <Form
+              style={{ maxWidth: 600 }}
+              onSubmit={e => this.onSubmit(e, "actions")}
+            >
+              <Form.Input
+                label="Action Name:"
+                onChange={(e, { value }) => this.setState({ newAction: value })}
+              ></Form.Input>
+              <Button type="submit">Add</Button>
+            </Form>
+          </div>
+        </Segment> */}
         <Segment>
           <Table celled>
             <Table.Header>

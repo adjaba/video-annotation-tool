@@ -156,6 +156,13 @@ app.post("/api/scenes/rename", (req, res) => {
   res.json({ success: true });
 });
 
+app.post("/api/scenes/rename-bulk", (req, res) => {
+  const { renames } = req.body;
+  Object.keys(renames).forEach(id => scenes.rename(renames[id], id));
+  res.json({ success: true });
+  console.log(scenes.getAll());
+});
+
 app.post("/api/scenes/add", (req, res) => {
   const { name } = req.body;
   scenes.add(name);
@@ -177,6 +184,13 @@ app.post("/api/actions/rename", (req, res) => {
   const { id, newName } = req.body;
   actions.rename(newName, id);
   res.json({ success: true });
+});
+
+app.post("/api/actions/rename-bulk", (req, res) => {
+  const { renames } = req.body;
+  Object.keys(renames).forEach(id => actions.rename(renames[id], id));
+  res.json({ success: true });
+  console.log(actions.getAll());
 });
 
 app.post("/api/actions/add", (req, res) => {
