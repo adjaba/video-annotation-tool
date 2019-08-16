@@ -1,6 +1,6 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 import Sortable from "react-sortablejs";
-// import { scenes, actions } from "./utils";
 import { Icon, Header, Input } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
@@ -8,13 +8,13 @@ export default class ScenesActions extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      source: Object.values(this.props.source),
+      source: this.props.source, // this is the state of the options pool, changes based on search input
       trigger: false
     };
   }
 
   render() {
-    var pool = Object.values(this.props.source);
+    var pool = Object.values(this.props.source); // this is the constant pool to filter upon, for options pool filtering
 
     return (
       <div
@@ -48,14 +48,13 @@ export default class ScenesActions extends React.Component {
               className="block-list unfixed"
               tag="ul"
               onChange={(order, sortable, evt) => {
-                console.log("handling change");
                 this.props.onChange(order, this.props.mode);
               }}
             >
-              {this.props.items.map((val, key) => (
-                <li key={key} data-id={val}>
+              {this.props.items.map((idx, key) => (
+                <li key={key} data-id={idx}>
                   <div style={{ display: "flex" }}>
-                    <div style={{ flex: 1 }}>{val}</div>
+                    <div style={{ flex: 1 }}>{this.props.source[idx]}</div>
                     <div style={{ flex: 0 }}>
                       <Icon
                         className="deletecursor"
@@ -110,10 +109,10 @@ export default class ScenesActions extends React.Component {
               className="block-list"
               tag="ul"
             >
-              {this.state.source.map((val, key) => (
-                <li key={key} data-id={val}>
+              {Object.keys(this.state.source).map((idx, key) => (
+                <li key={key} data-id={idx}>
                   <div style={{ display: "flex" }}>
-                    <div style={{ flex: 1 }}>{val}</div>
+                    <div style={{ flex: 1 }}>{this.state.source[idx]}</div>
                   </div>
                 </li>
               ))}
@@ -124,3 +123,9 @@ export default class ScenesActions extends React.Component {
     );
   }
 }
+
+ScenesActions.propTypes = {
+  mode: PropTypes.oneOf(["scenes", "actions"]),
+  items: PropTypes.arrayOf(PropTypes.number),
+  source: PropTypes.objectOf(PropTypes.string) // {idx: scene/action}
+};

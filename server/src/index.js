@@ -84,7 +84,6 @@ app.post("/api/start", (req, res) => {
   const { videoName } = req.body;
   console.log("api start", videoName);
   const entry = videos.getByVideoName(videoName);
-  console.log(entry);
   if (entry.length > 0) {
     console.log("already added,", entry);
     res.json({ success: true, message: entry });

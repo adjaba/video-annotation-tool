@@ -54,7 +54,6 @@
         document.getElementById("input_video").addEventListener(
           "change",
           function(e) {
-            console.log("got it");
             let fileObj = e.target.files[0];
             parseFile(fileObj);
           },
@@ -124,7 +123,6 @@
         }
 
         seek = function(length) {
-          console.log("seek! " + length);
           if (processing && length !== 0) {
             let r = new FileReader();
             let blob = file.slice(offset, length + offset);
@@ -134,12 +132,10 @@
             finalResult = mi.inform();
             finalJson = x2js.xml_str2json(finalResult);
 
-            console.log(finalJson);
             var frameCount =
               finalJson["MediaInfo"]["media"]["track"][1]["FrameCount"];
             var duration =
               finalJson["MediaInfo"]["media"]["track"][1]["Duration"];
-            console.log(frameCount, duration);
             var blankObj = JSON.stringify({
               database: {
                 [file.name.substring(0, file.name.lastIndexOf("."))]: {
@@ -149,7 +145,7 @@
                 }
               }
             });
-            console.log(blankObj);
+
             const e = new Event("input", { bubbles: true });
             const element = document.querySelector("#input_json_blank");
             const valueSetter = Object.getOwnPropertyDescriptor(
@@ -168,10 +164,7 @@
               valueSetter.call(element, blankObj);
             }
             element.dispatchEvent(e);
-            // document.getElementById("input_json_blank").value = blankObj;
-            // var event = new Event('input');
-            // document.getElementById("input_json_blank").dispatchEvent(event);
-            console.log(document.getElementById("input_json_blank").value);
+
             mi.close();
             processingDone();
           }
