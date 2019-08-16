@@ -5,7 +5,7 @@ import "video.js/dist/video-js.css";
 import videojs from "video.js";
 import Event from "./Event";
 import VideoPreview from "./VideoPreview";
-import { frameToSecs, secsToFrame, scenes, events, actions } from "./utils";
+import { frameToSecs, secsToFrame } from "./utils";
 import ScenesActions from "./ScenesActions";
 import update from "immutability-helper";
 import { Hotkeys, GlobalHotKeys } from "react-hotkeys";
@@ -119,8 +119,6 @@ class AnnotationApp extends Component {
       segmentEnd: null,
       segmentIndex: null,
       segmentEvent: null,
-      segmentScenes: [],
-      segmentActions: [],
       videoEndSecs: 0,
       visibleMenu: false,
       visibleScenesActions: false
@@ -171,7 +169,7 @@ class AnnotationApp extends Component {
           this.eventpool[id] = eventName;
         }
       });
-      console.log(this.events, events);
+      console.log(this.events);
     } catch (error) {
       console.log(error, "OH NO");
     }
@@ -186,7 +184,7 @@ class AnnotationApp extends Component {
           this.actionpool[id] = actionName;
         }
       });
-      console.log(this.actions, actions);
+      console.log(this.actions);
     } catch (error) {
       console.log(error, "OH NO");
     }
@@ -201,18 +199,24 @@ class AnnotationApp extends Component {
           this.scenepool[id] = sceneName;
         }
       });
-      console.log(this.scenes, scenes);
+      console.log(this.scenes);
+      console.log(this.scenepool);
     } catch (error) {
       console.log(error, "OH NO");
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
+    // if restored just dont change anything
     const videoNameJSONUpdated =
       prevState["videoName"] !== this.state.videoName ||
       prevState["json"] !== this.state.json;
+
+    if (this.state.history) {
+      console.log("RESTORED");
+    }
     // if video or json updated
-    if (videoNameJSONUpdated) {
+    else if (videoNameJSONUpdated) {
       // if video and json exists
       console.log(this.state.jsonName === "", this.state.jsonName);
       if (this.state.videoName && this.state.json) {
@@ -250,7 +254,7 @@ class AnnotationApp extends Component {
             history: []
           });
           alert(
-            "Upload a video with the correct filename or upload the correct json file."
+            "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
           );
         }
       } else {
@@ -322,7 +326,8 @@ class AnnotationApp extends Component {
               "You have previously saved work. Restore?"
             );
             if (r) {
-              // const state = update(this.state, {$merge: currentJson})
+              console.log("UPDATING EVERYTHING TO", currentJson);
+              console.log(JSON.parse(currentJson));
               this.setState(JSON.parse(currentJson));
             }
           }
@@ -348,8 +353,7 @@ class AnnotationApp extends Component {
     const videoName = this.state.videoName;
     const jsonName = this.state.jsonName;
     const id = this.id;
-    console.log(id);
-    //TODO: figure out what we're actually saving
+
     const currentJson = update(this.state, { $unset: ["videoSrc"] });
     try {
       const message = await (await fetch("/api/save/", {
@@ -368,7 +372,6 @@ class AnnotationApp extends Component {
       if (!id) {
         this.id = newId;
       }
-      console.log(this.id);
     } catch (err) {
       console.log(err);
     }
@@ -546,10 +549,14 @@ class AnnotationApp extends Component {
   }
 
   parseJSONBlank(value) {
-    this.setState({
-      json: JSON.parse(value),
-      jsonName: ""
-    });
+    // this should only be behavior when no json has been uploaded yet
+    if (!this.state.json) {
+      alert("replacing blank bwahahaha");
+      this.setState({
+        json: JSON.parse(value),
+        jsonName: ""
+      });
+    }
   }
 
   /**
@@ -744,7 +751,7 @@ class AnnotationApp extends Component {
             {
               segmentIndex: newIndex,
               labelEvent: null,
-              labelEventIndex: null,
+              labelEventIdx: null,
               segment: [segmentStart, videoEnd],
               labelScene: [],
               labelSceneIndex: [],
@@ -885,7 +892,9 @@ class AnnotationApp extends Component {
   }
 
   setScenesActions(items, mode) {
-    // console.log("triggered" + this.state.segmentIndex + mode+items.toString());
+    console.log(
+      "triggered" + this.state.segmentIndex + mode + items.toString()
+    );
     var metadata;
     if (mode === "scenes") {
       metadata = update(
@@ -895,7 +904,7 @@ class AnnotationApp extends Component {
         {
           annotations: {
             [this.state.segmentIndex]: {
-              labelScene: { $set: items }
+              labelSceneIndex: { $set: items }
             }
           }
         }
@@ -903,7 +912,7 @@ class AnnotationApp extends Component {
       metadata = update(metadata, {
         annotations: {
           [this.state.segmentIndex]: {
-            labelSceneIndex: { $set: items.map(scene => scenes[scene]) }
+            labelScene: { $set: items.map(scene => this.scenes[scene]) }
           }
         }
       });
@@ -923,7 +932,7 @@ class AnnotationApp extends Component {
         {
           annotations: {
             [this.state.segmentIndex]: {
-              labelAction: { $set: items }
+              labelActionIndex: { $set: items }
             }
           }
         }
@@ -931,7 +940,7 @@ class AnnotationApp extends Component {
       metadata = update(metadata, {
         annotations: {
           [this.state.segmentIndex]: {
-            labelActionIndex: { $set: items.map(action => actions[action]) }
+            labelAction: { $set: items.map(action => this.actions[action]) }
           }
         }
       });
@@ -985,13 +994,15 @@ class AnnotationApp extends Component {
       ][0],
       {
         annotations: {
-          [this.state.segmentIndex]: { labelEvent: { $set: value } }
+          [this.state.segmentIndex]: {
+            labelEvent: { $set: this.events[value] }
+          }
         }
       }
     );
     metadata = update(metadata, {
       annotations: {
-        [this.state.segmentIndex]: { labelEventIdx: { $set: events[value] } }
+        [this.state.segmentIndex]: { labelEventIdx: { $set: value } }
       }
     });
     this.saveMetadata(metadata);
@@ -1004,6 +1015,7 @@ class AnnotationApp extends Component {
   }
 
   renderEvents() {
+    console.log("EVENTS", this.state.history);
     return this.state.history.length > 0
       ? "annotations" in
         this.state.history[
@@ -1024,17 +1036,14 @@ class AnnotationApp extends Component {
                   if (!r) {
                     return;
                   }
+                  this.setState({
+                    saved: true
+                  });
                 }
                 this.setState({
                   segmentStart: prop["segment"][0],
                   segmentEnd: prop["segment"][1],
                   segmentIndex: prop["segmentIndex"],
-                  segmentActions: prop["labelActionIndex"].map(
-                    idx => this.actions[idx]
-                  ),
-                  segmentScenes: prop["labelSceneIndex"].map(
-                    idx => this.scenes[idx]
-                  ),
                   visibleScenesActions: true
                 });
               }}
@@ -1248,7 +1257,7 @@ class AnnotationApp extends Component {
               editReady && thereAreEvents
                 ? currentMetadata["annotations"][this.state.segmentIndex][
                     "labelSceneIndex"
-                  ].map(index => this.scenes[index] || "".toLowerCase())
+                  ]
                 : []
             }
             style={{
@@ -1269,7 +1278,7 @@ class AnnotationApp extends Component {
               editReady && thereAreEvents
                 ? currentMetadata["annotations"][this.state.segmentIndex][
                     "labelActionIndex"
-                  ].map(index => this.actions[index] || "".toLowerCase())
+                  ]
                 : []
             }
             source={this.actionpool}
@@ -1492,7 +1501,7 @@ class AnnotationApp extends Component {
                         Object({
                           key: id,
                           text: this.eventpool[id],
-                          value: this.eventpool[id]
+                          value: id
                         })
                       )}
                       defaultValue={
