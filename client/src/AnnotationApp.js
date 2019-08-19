@@ -213,10 +213,6 @@ class AnnotationApp extends Component {
    * @param {*} prevState
    */
   componentDidUpdate(prevProps, prevState) {
-    const videoNameJSONUpdated =
-      prevState["videoName"] !== this.state.videoName ||
-      prevState["json"] !== this.state.json;
-
     // if there is no video and json was blank ("" or null)
     // this scenario would occur after changing the video for a previously blank json
     if (!this.state.videoName && this.state.jsonName === "") {
@@ -226,82 +222,45 @@ class AnnotationApp extends Component {
       });
     }
 
-    // if (this.state.history !== undefined && this.state.history.length > 0) {
-    //     alert("Restored")
-    //     return
-    // }
-    // if video or json updated
-    // if (videoNameJSONUpdated) {
-    //   // if restored just dont change anything
-    //   // if (this.state.history !== undefined && this.state.history.length > 0) {
-    //   //   alert("Restored")
-    //   //   return
-    //   // }
-    //   // if video and json exists
-    //   console.log(this.state.jsonName === "", this.state.jsonName);
-    //   if (this.state.videoName && this.state.json) {
-    //     // if video and json match
-    //     console.log("json and video present and change detected");
-    //     if (
-    //       Object.keys(this.state.json["database"]).indexOf(
-    //         this.state.videoName
-    //       ) >= 0
-    //     ) {
-    //       console.log("json and video match");
-    //       this.setState({
-    //         saved: true,
-    //         visibleMenu: true,
-    //         history: [
-    //           [
-    //             this.state.json["database"][this.state.videoName],
-    //             this.state.segmentIndex
-    //           ]
-    //         ],
-    //         historyIndex: 0
-    //       });
-    //     // } else if (this.state.jsonName === "") {
-    //     //   // if json was generated from before do nothing until new json is generated
-    //     } else {
-    //       console.log("clearing history");
-    //       this.setState({
-    //         videoEndSecs: null,
-    //         segmentIndex: null,
-    //         history: [],
-    //       });
-    //       alert(
-    //         "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
-    //       );
-    //     }
-    //   } else {
-    //     console.log("clearing history");
-    //     this.setState({
-    //       videoEndSecs: null,
-    //       segmentIndex: null,
-    //       history: []
-    //     });
-    //   }
-    // }
+    const fps =
+      this.state.history.length > 0
+        ? this.state.history[
+            this.state.history.length - 1 - this.state.historyIndex
+          ][0]["fps"] || null
+        : null;
 
     if (
       prevState["segmentStart"] !== this.state.segmentStart ||
       prevState["segmentEnd"] !== this.state.segmentEnd
     ) {
       const player = videojs.getPlayer("videoJS");
-      const fps =
-        this.state.history[
-          this.state.history.length - 1 - this.state.historyIndex
-        ][0]["fps"] || null;
 
-      if (fps) {
-        this.markers(player, [
-          { time: frameToSecs(this.state.segmentStart, fps), text: "start" },
-          { time: frameToSecs(this.state.segmentEnd, fps), text: "end" }
-        ]);
+      // if player has not loaded metadata yet, wait before running
+      if (isNaN(player.duration())) {
+        player.one("loadedmetadata", () => {
+          if (fps) {
+            this.markers(player, [
+              {
+                time: frameToSecs(this.state.segmentStart, fps),
+                text: "start"
+              },
+              { time: frameToSecs(this.state.segmentEnd, fps), text: "end" }
+            ]);
+          }
+        });
+      } else {
+        if (fps) {
+          this.markers(player, [
+            { time: frameToSecs(this.state.segmentStart, fps), text: "start" },
+            { time: frameToSecs(this.state.segmentEnd, fps), text: "end" }
+          ]);
+        }
       }
     }
   }
 
   markers(player, marklist) {
+    console.log(marklist, player.duration());
     var playheadWell = document.getElementsByClassName(
       "vjs-progress-holder vjs-slider"
     )[0];
@@ -315,7 +274,6 @@ class AnnotationApp extends Component {
       elem.className = "vjs-marker";
       elem.id = "mk" + i;
       elem.style.left = (marker.time / player.duration()) * 100 + "%";
-      console.log("length", playheadWell.offsetWidth);
       playheadWell.appendChild(elem);
     });
   }
