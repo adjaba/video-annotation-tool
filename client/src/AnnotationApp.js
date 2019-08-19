@@ -207,13 +207,13 @@ class AnnotationApp extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // if restored just dont change anything
     const videoNameJSONUpdated =
       prevState["videoName"] !== this.state.videoName ||
       prevState["json"] !== this.state.json;
 
-    if (this.state.history) {
-      console.log("RESTORED");
+    // if restored just dont change anything
+    if (this.state.history !== undefined && this.state.history.length > 0) {
+      console.log("Restored");
     }
     // if video or json updated
     else if (videoNameJSONUpdated) {
@@ -264,7 +264,9 @@ class AnnotationApp extends Component {
           history: []
         });
       }
-    } else if (
+    }
+
+    if (
       prevState["segmentStart"] !== this.state.segmentStart ||
       prevState["segmentEnd"] !== this.state.segmentEnd
     ) {
@@ -326,8 +328,6 @@ class AnnotationApp extends Component {
               "You have previously saved work. Restore?"
             );
             if (r) {
-              console.log("UPDATING EVERYTHING TO", currentJson);
-              console.log(JSON.parse(currentJson));
               this.setState(JSON.parse(currentJson));
             }
           }
@@ -955,30 +955,7 @@ class AnnotationApp extends Component {
     }
     this.saveMetadata(metadata);
   }
-  // async handleFilesSubmit(e) {
-  //   console.log(e);
-  //   console.log(e.target);
 
-  //   e.preventDefault();
-
-  //   const form = e.target;
-  //   const formData = new FormData(form);
-
-  //   // await fetch('/api/uploads/' + 1, {
-  //   //   method: 'POST',
-  //   //   body: formData,
-  //   // });
-
-  //   // this.props.onChange();
-  //   const video = this.state.video;
-  //   var fileURL = URL.createObjectURL(video);
-
-  //   var myVideo = document.getElementById("video");
-  //   console.log(fileURL);
-  //   myVideo.src = fileURL;
-  //   myVideo.play();
-  //   // form.reset();
-  // }
   videoPreviewChange(frame, name) {
     if (name === "start") {
       this.setState({ saved: false, segmentStart: frame });
@@ -1006,16 +983,11 @@ class AnnotationApp extends Component {
       }
     });
     this.saveMetadata(metadata);
-    // console.log(metadata);
-    // console.log('old', this.state.metadata);
-    // this.setState({
-    //   segmentEvent: value
-    // });
-    // this.saveSegment();
   }
 
   renderEvents() {
-    console.log("EVENTS", this.state.history);
+    // TODO: Stop frequent renderEvents?
+    // console.log("EVENTS", this.state.history);
     return this.state.history.length > 0
       ? "annotations" in
         this.state.history[

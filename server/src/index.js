@@ -201,6 +201,15 @@ app.post("/api/actions/add", (req, res) => {
   res.json({ success: true });
 });
 
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../../client/build")));
+  app.get("*", (req, res, next) => {
+    if (req.url.startsWith("/api/")) return next();
+    if (req.url.startsWith("/uploads/")) return next();
+    res.sendFile(path.join(__dirname + "/../../client/build/index.html"));
+  });
+}
+
 const PORT = process.env.API_PORT || process.env.PORT || 3001;
 
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
