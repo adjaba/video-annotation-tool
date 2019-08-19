@@ -536,6 +536,7 @@ class AnnotationApp extends Component {
 
   parseJSONBlank(value) {
     // when json and video don't match or when there's no uploaded json
+    console.log("got a blank one");
     if (
       !this.state.json ||
       Object.keys(this.state.json["database"]).indexOf(this.state.videoName) < 0
@@ -1231,6 +1232,7 @@ class AnnotationApp extends Component {
               borderTop: "1px solid #ddd"
             }}
             source={this.scenepool}
+            sourceall={this.scenes}
             onChange={this.setScenesActions}
           />
           {/* </Grid.Column>
@@ -1246,6 +1248,7 @@ class AnnotationApp extends Component {
                 : []
             }
             source={this.actionpool}
+            sourceall={this.actions}
             style={{ flex: 1, padding: "5px" }}
             onChange={this.setScenesActions}
           />

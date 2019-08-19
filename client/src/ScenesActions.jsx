@@ -54,7 +54,7 @@ export default class ScenesActions extends React.Component {
               {this.props.items.map((idx, key) => (
                 <li key={key} data-id={idx}>
                   <div style={{ display: "flex" }}>
-                    <div style={{ flex: 1 }}>{this.props.source[idx]}</div>
+                    <div style={{ flex: 1 }}>{this.props.sourceall[idx]}</div>
                     <div style={{ flex: 0 }}>
                       <Icon
                         className="deletecursor"
