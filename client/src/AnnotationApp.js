@@ -303,7 +303,7 @@ class AnnotationApp extends Component {
 
   markers(player, marklist) {
     var playheadWell = document.getElementsByClassName(
-      "vjs-progress-control vjs-control"
+      "vjs-progress-holder vjs-slider"
     )[0];
     var elements = playheadWell.getElementsByClassName("vjs-marker");
     while (elements[0]) {
@@ -315,7 +315,7 @@ class AnnotationApp extends Component {
       elem.className = "vjs-marker";
       elem.id = "mk" + i;
       elem.style.left = (marker.time / player.duration()) * 100 + "%";
-      // console.log("elem.style.left", elem.style.left);
+      console.log("length", playheadWell.offsetWidth);
       playheadWell.appendChild(elem);
     });
   }

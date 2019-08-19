@@ -135,6 +135,6 @@ ul {
   position: absolute;
   opacity: 1;
   height: 100%;
-  background-color: rgb(39, 159, 189);
+  background-color: rgb(255, 0, 0) !important;
   width: 4px;
 }
