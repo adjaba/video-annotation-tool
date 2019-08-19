@@ -427,9 +427,9 @@ class AnnotationApp extends Component {
         } else {
           console.log("clearing history");
           // if not match and jsonName is blank, this means new video that needs new blank
-          if (jsonName === "generated") {
-            json = null;
-          }
+          alert(
+            "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
+          );
           segmentIndex = null;
           this.setState({
             videoEndSecs: null,
@@ -437,9 +437,6 @@ class AnnotationApp extends Component {
             history: [],
             json: json
           });
-          alert(
-            "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
-          );
         }
       } else {
         segmentIndex = null;
@@ -580,7 +577,7 @@ class AnnotationApp extends Component {
   }
 
   parseJSONBlank(value) {
-    // this should only be behavior when no json has been uploaded yet
+    // when json and video don't match or when there's no uploaded json
     if (
       !this.state.json ||
       Object.keys(this.state.json["database"]).indexOf(this.state.videoName) < 0
