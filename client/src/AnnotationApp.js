@@ -149,6 +149,7 @@ class AnnotationApp extends Component {
     this.actions = {};
     this.actionpool = {}; // undeleted events (for options)
     // this.parseFile = this.parseFile.bind(this);
+    this.initialize = this.initialize.bind(this);
   }
 
   handlers = {
@@ -206,65 +207,80 @@ class AnnotationApp extends Component {
     }
   }
 
+  /**
+   * componentDidUpdate - used to set up state given video and json
+   * @param {*} prevProps
+   * @param {*} prevState
+   */
   componentDidUpdate(prevProps, prevState) {
     const videoNameJSONUpdated =
       prevState["videoName"] !== this.state.videoName ||
       prevState["json"] !== this.state.json;
 
-    // if restored just dont change anything
-    if (this.state.history !== undefined && this.state.history.length > 0) {
-      console.log("Restored");
+    // if there is no video and json was blank ("" or null)
+    // this scenario would occur after changing the video for a previously blank json
+    if (!this.state.videoName && this.state.jsonName === "") {
+      this.setState({
+        json: null,
+        history: []
+      });
     }
+
+    // if (this.state.history !== undefined && this.state.history.length > 0) {
+    //     alert("Restored")
+    //     return
+    // }
     // if video or json updated
-    else if (videoNameJSONUpdated) {
-      // if video and json exists
-      console.log(this.state.jsonName === "", this.state.jsonName);
-      if (this.state.videoName && this.state.json) {
-        // if video and json match
-        console.log(this.state.json);
-        console.log(typeof this.state.json);
-        console.log("json and video present and change detected");
-        if (
-          Object.keys(this.state.json["database"]).indexOf(
-            this.state.videoName
-          ) >= 0
-        ) {
-          console.log("initializing");
-          console.log(
-            "fps ",
-            this.state.json["database"][this.state.videoName]["fps"]
-          );
-          this.setState({
-            saved: true,
-            visibleMenu: true,
-            history: [
-              [
-                this.state.json["database"][this.state.videoName],
-                this.state.segmentIndex
-              ]
-            ],
-            historyIndex: 0
-          });
-        } else if (this.state.jsonName === "") {
-          // if json was generated from before do nothing until new json is generated
-        } else {
-          this.setState({
-            videoEndSecs: null,
-            segmentIndex: null,
-            history: []
-          });
-          alert(
-            "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
-          );
-        }
-      } else {
-        this.setState({
-          videoEndSecs: null,
-          segmentIndex: null,
-          history: []
-        });
-      }
-    }
+    // if (videoNameJSONUpdated) {
+    //   // if restored just dont change anything
+    //   // if (this.state.history !== undefined && this.state.history.length > 0) {
+    //   //   alert("Restored")
+    //   //   return
+    //   // }
+    //   // if video and json exists
+    //   console.log(this.state.jsonName === "", this.state.jsonName);
+    //   if (this.state.videoName && this.state.json) {
+    //     // if video and json match
+    //     console.log("json and video present and change detected");
+    //     if (
+    //       Object.keys(this.state.json["database"]).indexOf(
+    //         this.state.videoName
+    //       ) >= 0
+    //     ) {
+    //       console.log("json and video match");
+    //       this.setState({
+    //         saved: true,
+    //         visibleMenu: true,
+    //         history: [
+    //           [
+    //             this.state.json["database"][this.state.videoName],
+    //             this.state.segmentIndex
+    //           ]
+    //         ],
+    //         historyIndex: 0
+    //       });
+    //     // } else if (this.state.jsonName === "") {
+    //     //   // if json was generated from before do nothing until new json is generated
+    //     } else {
+    //       console.log("clearing history");
+    //       this.setState({
+    //         videoEndSecs: null,
+    //         segmentIndex: null,
+    //         history: [],
+    //       });
+    //       alert(
+    //         "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
+    //       );
+    //     }
+    //   } else {
+    //     console.log("clearing history");
+    //     this.setState({
+    //       videoEndSecs: null,
+    //       segmentIndex: null,
+    //       history: []
+    //     });
+    //   }
+    // }
 
     if (
       prevState["segmentStart"] !== this.state.segmentStart ||
@@ -293,13 +309,13 @@ class AnnotationApp extends Component {
     while (elements[0]) {
       playheadWell.removeChild(elements[0]);
     }
-    console.log(marklist);
+    // console.log(marklist);
     marklist.forEach((marker, i) => {
       var elem = document.createElement("div");
       elem.className = "vjs-marker";
       elem.id = "mk" + i;
       elem.style.left = (marker.time / player.duration()) * 100 + "%";
-      console.log("elem.style.left", elem.style.left);
+      // console.log("elem.style.left", elem.style.left);
       playheadWell.appendChild(elem);
     });
   }
@@ -319,10 +335,10 @@ class AnnotationApp extends Component {
       }))
         .json()
         .then(message => {
-          console.log(message);
+          // console.log(message);
           const { id, currentJson } = message["message"][0];
           this.id = id;
-          console.log("MY ID", this.id);
+          // console.log("MY ID", this.id);
           if (currentJson) {
             const r = window.confirm(
               "You have previously saved work. Restore?"
@@ -376,21 +392,92 @@ class AnnotationApp extends Component {
       console.log(err);
     }
   }
-  // componentWillUnmount(){
-  //   this.addToDatabase();
-  // }
+
+  /**
+   * Initialize state given video or json /user/ inputs.
+   *
+   * If video or json changes: //TODO: is this ever not true in this function?
+   *  Check if json and video match
+   *    If no, send alert
+   *    If yes, proceed with resetting state
+   *
+   */
+  initialize(
+    videoName = this.state.videoName,
+    videoSrc = this.state.videoSrc,
+    segmentIndex = this.state.segmentIndex,
+    json = this.state.json,
+    jsonName = this.state.jsonName
+  ) {
+    if (videoName !== this.state.videoName || json !== this.state.json) {
+      console.log(this.state.jsonName === "", this.state.jsonName);
+      if (videoName && json) {
+        // if video and json match
+        console.log("json and video present and change detected");
+        if (Object.keys(json["database"]).indexOf(videoName) >= 0) {
+          console.log("json and video match");
+          this.setState({
+            saved: true,
+            visibleMenu: true,
+            history: [[json["database"][videoName], segmentIndex]],
+            historyIndex: 0
+          });
+          // } else if (this.state.jsonName === "") {
+          //   // if json was generated from before do nothing until new json is generated
+        } else {
+          console.log("clearing history");
+          // if not match and jsonName is blank, this means new video that needs new blank
+          if (jsonName === "generated") {
+            json = null;
+          }
+          segmentIndex = null;
+          this.setState({
+            videoEndSecs: null,
+            // segmentIndex: null,
+            history: [],
+            json: json
+          });
+          alert(
+            "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
+          );
+        }
+      } else {
+        segmentIndex = null;
+        this.setState({
+          videoEndSecs: null,
+          // segmentIndex: null,
+          history: []
+        });
+      }
+    } else {
+      alert("THIS HAPPENS???");
+    }
+
+    this.setState({
+      videoName,
+      videoSrc,
+      segmentIndex,
+      json,
+      jsonName
+    });
+  }
+
   // on video upload
   playSelectedFile(event) {
     var file = event.target.files[0];
     const player = videojs.getPlayer("videoJS");
 
     if (!file) {
+      this.initialize(null, null, null);
       this.setState({
-        videoName: null,
-        videoSrc: null,
-        segmentIndex: null,
         videoEndSecs: null
       });
+      // this.setState({
+      //   videoName: null,
+      //   videoSrc: null,
+      //   segmentIndex: null,
+      //   videoEndSecs: null
+      // });
       player.reset();
       return;
     }
@@ -416,24 +503,23 @@ class AnnotationApp extends Component {
       type: file.type
     });
 
-    // const playerStart = videojs.getPlayer("videoJSStart");
-    // playerStart.src({
-    //   src: fileURL,
-    //   type: file.type
-    // });
-    console.log(
-      "call fetch from database. ",
-      file.name.substring(0, file.name.lastIndexOf("."))
-    );
     this.fetchFromDatabase(file.name.substring(0, file.name.lastIndexOf(".")));
-    this.setState({
-      videoName: file.name.substring(0, file.name.lastIndexOf(".")),
-      videoSrc: {
+    this.initialize(
+      file.name.substring(0, file.name.lastIndexOf(".")),
+      {
         src: fileURL,
         type: file.type
       },
-      segmentIndex: null
-    });
+      null
+    );
+    // this.setState({
+    //   videoName: file.name.substring(0, file.name.lastIndexOf(".")),
+    //   videoSrc: {
+    //     src: fileURL,
+    //     type: file.type
+    //   },
+    //   segmentIndex: null
+    // });
 
     player.on("loadedmetadata", () => {
       this.setState({
@@ -446,75 +532,19 @@ class AnnotationApp extends Component {
         currentTime: player.currentTime()
       });
     });
-    // this.parseFile(file);
   }
-
-  // parseFile(file) {
-  //   let mediaInfoLib = mediaInfo();
-  //   let mi = new mediaInfoLib.MediaInfo();
-
-  // }
-
-  //   if (processing) {
-  //     return;
-  //   }
-  //   processing = true;
-
-  //   var fileSize = file.size, offset = 0, state = 0, seekTo = -1, seek = null;
-
-  //   mi.open_buffer_init(fileSize, offset);
-
-  //   var processChunk = function(e) {
-  //     var l;
-  //     if (e.target.error === null) {
-  //       var chunk = new Uint8Array(e.target.result);
-  //       l = chunk.length;
-  //       state = mi.open_buffer_continue(chunk, l);
-
-  //       var seekTo = -1;
-  //       var seekToLow = mi.open_buffer_continue_goto_get_lower();
-  //       var seekToHigh = mi.open_buffer_continue_goto_get_upper();
-
-  //       if (seekToLow == -1 && seekToHigh == -1) {
-  //         seekTo = -1;
-  //       } else if (seekToLow < 0) {
-  //         seekTo = seekToLow + 4294967296 + (seekToHigh * 4294967296);
-  //       } else {
-  //         seekTo = seekToLow + (seekToHigh * 4294967296);
-  //       }
-
-  //       if(seekTo === -1){
-  //         offset += l;
-  //       }else{
-  //         offset = seekTo;
-  //         mi.open_buffer_init(fileSize, seekTo);
-  //       }
-  //       chunk = null;
-  //     } else {
-  //       var msg = 'An error happened reading your file!';
-  //       console.err(msg, e.target.error);
-  //       processing = false;
-  //       alert(msg);
-  //       return;
-  //     }
-  //     // bit 4 set means finalized
-  //     if (state&0x08) {
-  //       var result = mi.inform();
-  //       mi.close();
-  //       // addResult(file.name, result);
-  //       console.log(result);
-  //       processing = false;
-  //       return;
-  //     }
-  //     seek(l);
-  //   };
-  // }
 
   parseJSONInput(event) {
     if (!event.target.files[0]) {
       // this.setState({
       //   json: null
       // });
+      this.initialize(
+        this.state.videoName,
+        this.state.videoSrc,
+        this.state.segmentIndex,
+        null
+      );
       return;
     }
 
@@ -528,16 +558,17 @@ class AnnotationApp extends Component {
         jsonUpload.click();
         return;
       }
-      this.setState({
-        json: json
-      });
+      this.initialize(
+        this.state.videoName,
+        this.state.videoSrc,
+        this.state.segmentIndex,
+        json
+      );
+      // this.setState({
+      //   json: json
+      // });
     };
-    // } function(event){
-    //   console.log(JSON.parse(event.target.result)['database']);
-    //   this.setState({
-    //     metadata: JSON.parse(event.target.result)['database'],
-    //   })
-    // }
+
     reader.readAsText(event.target.files[0]);
 
     this.setState({
@@ -550,12 +581,18 @@ class AnnotationApp extends Component {
 
   parseJSONBlank(value) {
     // this should only be behavior when no json has been uploaded yet
-    if (!this.state.json) {
-      alert("replacing blank bwahahaha");
-      this.setState({
-        json: JSON.parse(value),
-        jsonName: ""
-      });
+    if (
+      !this.state.json ||
+      Object.keys(this.state.json["database"]).indexOf(this.state.videoName) < 0
+    ) {
+      console.log("replacing blank bwahahaha");
+      this.initialize(
+        this.state.videoName,
+        this.state.videoSrc,
+        this.state.segmentIndex,
+        JSON.parse(value),
+        "generated"
+      );
     }
   }
 
@@ -892,9 +929,9 @@ class AnnotationApp extends Component {
   }
 
   setScenesActions(items, mode) {
-    console.log(
-      "triggered" + this.state.segmentIndex + mode + items.toString()
-    );
+    // console.log(
+    //   "triggered" + this.state.segmentIndex + mode + items.toString()
+    // );
     var metadata;
     if (mode === "scenes") {
       metadata = update(
