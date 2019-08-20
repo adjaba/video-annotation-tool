@@ -170,7 +170,7 @@ class AnnotationApp extends Component {
           this.eventpool[id] = eventName;
         }
       });
-      console.log(this.events);
+      console.log(this.eventpool);
     } catch (error) {
       console.log(error, "OH NO");
     }
@@ -498,6 +498,7 @@ class AnnotationApp extends Component {
         this.state.videoName,
         this.state.videoSrc,
         this.state.segmentIndex,
+        null,
         null
       );
       return;
@@ -991,7 +992,8 @@ class AnnotationApp extends Component {
           ][0]["annotations"].map((prop, i) => (
             <Event
               key={i}
-              {...prop}
+              segment={prop.segment}
+              labelEvent={this.events[prop.labelEventIdx]}
               index={i}
               onClick={() => {
                 if (!this.state.saved) {
@@ -1061,6 +1063,16 @@ class AnnotationApp extends Component {
       ? currentMetadata["annotations"].length > 0
       : false;
 
+    console.log(
+      this.state.segmentIndex,
+      editReady && thereAreEvents
+        ? this.eventpool[
+            currentMetadata["annotations"][this.state.segmentIndex][
+              "labelEventIdx"
+            ]
+          ] //TODO: labelEventIndex?
+        : null
+    );
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <GlobalHotKeys keyMap={keyMap} handlers={this.handlers} />
@@ -1460,7 +1472,9 @@ class AnnotationApp extends Component {
                   <div style={{ display: "block", padding: "5px 10px" }}>
                     <b>Type: </b>
                     <Dropdown
-                      key={this.state.segmentIndex}
+                      key={
+                        this.state.segmentIndex + " " + this.state.historyIndex
+                      }
                       search
                       selection
                       onChange={(e, { value }) => this.setEvent(value)}
@@ -1473,12 +1487,11 @@ class AnnotationApp extends Component {
                       )}
                       defaultValue={
                         editReady && thereAreEvents
-                          ? this.events[
-                              currentMetadata["annotations"][
-                                this.state.segmentIndex
-                              ]["labelEventIdx"]
-                            ] //TODO: labelEventIndex?
-                          : null
+                          ? currentMetadata["annotations"][
+                              this.state.segmentIndex
+                            ]["labelEventIdx"] || ""
+                          : //TODO: labelEventIndex?
+                            null
                       }
                     ></Dropdown>
                   </div>

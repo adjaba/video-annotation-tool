@@ -13,10 +13,6 @@ export default class Event extends Component {
       index,
       segment,
       labelEvent,
-      numberOfActions,
-      labelActionIndex,
-      numberOfScenes,
-      labelScenes,
       style,
       onClick,
       onDeleteClick,
@@ -47,19 +43,13 @@ export default class Event extends Component {
               color="red"
               size="medium"
               compact
-              onClick={this.props.onDeleteClick}
+              onClick={onDeleteClick}
               style={{ marginRight: 0, fontSize: "10px" }}
             />
           </div>
           <div style={{ display: "block" }}>
             Start Frame: {segment[0]} <br /> End Frame: {segment[1]}
           </div>
-          {/* Segment is {segment} . labelEvent {labelEvent} . numberOfActions{" "}
-          {numberOfActions} . labelActionIndex {labelActionIndex} .
-          numberOfScenes {numberOfScenes} . labelScenes {labelScenes} . */}
-          {/* <List divided selection style = {{ flex: 1, overflowY: 'auto'}}>
-
-                  </List> */}
         </div>
       </List.Item>
     );
