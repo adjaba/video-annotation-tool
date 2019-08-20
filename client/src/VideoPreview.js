@@ -1,10 +1,9 @@
 import React, { Component } from "react";
 import VideoPlayer from "./VideoPlayer";
 import videojs from "video.js";
-import { frameToSecs, secsToFrame, extractFramesFromVideo } from "./utils";
-import { Input } from "semantic-ui-react";
+import { frameToSecs, secsToFrame } from "./utils";
+import { Input, Button } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
-import { runInThisContext } from "vm";
 
 var videoPreviewOptions = {
   autoplay: false,
@@ -27,6 +26,9 @@ export default class VideoPreview extends Component {
     this.handleChange = this.handleChange.bind(this);
   }
 
+  /**
+   * Set the source of video preview and the displayed frame to be that of the current frame.
+   */
   componentDidMount() {
     if (!this.props.fps) {
       return;
@@ -36,11 +38,12 @@ export default class VideoPreview extends Component {
       videojs(this.state.id).currentTime(
         frameToSecs(this.props.frame, this.props.fps)
       );
-      // let frames = extractFramesFromVideo(this.state.id, this.props.fps);
-      // console.log(frames);
     }
   }
 
+  /**
+   * Update displayed screen in preview.
+   */
   componentDidUpdate() {
     if (
       (!this.props.frame && this.props.frame !== 0) ||
@@ -52,38 +55,42 @@ export default class VideoPreview extends Component {
     player.currentTime(frameToSecs(this.props.frame, this.props.fps));
   }
 
+  /**
+   * handleChange -> handler for frame change by user input
+   *
+   * Make sure that frame is within bounds (no need to check for negative since <Input> does not allow negative input)
+   * Call propsOnChange, which updates everything from the Annotation App.
+   */
   handleChange = event => {
     if (event.target.value > secsToFrame(this.props.end, this.props.fps)) {
       alert("Inputted frame bigger than last frame");
     }
-    console.log("update");
-    // var player = videojs.getPlayer(this.state.id);
-    // player.currentTime(frameToSecs(event.target.value, this.props.fps));
     this.props.onChange(parseInt(event.target.value), this.props.name);
-
-    // var video = document.getElementById('videoPlay'),
-    // var lastTime = -1;
-    // function draw(lastTime = -1) {
-    //     var time = player.currentTime();
-    //     if (time !== lastTime) {
-    //         console.log('lastTime: ' + lastTime)
-    //         console.log('time: ' + time);
-    //         requestAnimationFrame(draw);
-
-    //         //todo: do your rendering here
-    //         lastTime = time;
-    //         console.log('lastTime   :' + lastTime)
-    //     }
-
-    // //wait approximately 16ms and run again
-    // }
-
-    // draw()
   };
 
-  componentWillUnmount() {
-    // console.log("unmounting videopreview", this.state.id);
-  }
+  /**
+   * handleIncrement -> handler for button increment in frame, expects either int input or string of int input
+   */
+  handleIncrement = increment => {
+    increment = parseInt(increment);
+    var currentVal = parseInt(document.getElementById(this.props.name).value);
+    if (increment > 0) {
+      this.props.onChange(
+        parseInt(
+          Math.min(
+            secsToFrame(this.props.end, this.props.fps),
+            currentVal + increment
+          )
+        ),
+        this.props.name
+      );
+    } else {
+      this.props.onChange(
+        Math.max(0, currentVal - increment * -1),
+        this.props.name
+      );
+    }
+  };
 
   render() {
     return (
@@ -105,17 +112,37 @@ export default class VideoPreview extends Component {
         />
         {this.props.name.charAt(0).toUpperCase() + this.props.name.slice(1)}{" "}
         Frame
-        <Input
-          style={{ width: "100px" }}
-          type="number"
-          id={this.props.name}
-          onChange={e => {
-            this.handleChange(e);
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "row"
           }}
-          value={isFinite(this.props.frame) ? this.props.frame : 0}
-          min={0}
-          max={secsToFrame(this.props.end, this.props.fps)}
-        ></Input>
+        >
+          <Button
+            style={{ margin: 0 }}
+            onClick={() => this.handleIncrement("-5")}
+          >
+            {" "}
+            -5
+          </Button>
+          <Input
+            style={{ width: "100px" }}
+            type="number"
+            id={this.props.name}
+            onChange={e => {
+              this.handleChange(e);
+            }}
+            value={isFinite(this.props.frame) ? this.props.frame : 0}
+            min={0}
+            max={secsToFrame(this.props.end, this.props.fps)}
+          ></Input>
+          <Button style={{ margin: 0 }} onClick={() => this.handleIncrement(5)}>
+            {" "}
+            +5
+          </Button>
+        </div>
         Approximate Time
         <Input
           style={{ width: "100px" }}
