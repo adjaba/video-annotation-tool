@@ -150,6 +150,7 @@ class AnnotationApp extends Component {
     this.actionpool = {}; // undeleted events (for options)
     // this.parseFile = this.parseFile.bind(this);
     this.initialize = this.initialize.bind(this);
+    this.jsonblank = null;
   }
 
   handlers = {
@@ -395,6 +396,21 @@ class AnnotationApp extends Component {
             history: [],
             json: json
           });
+
+          // if received matching jsonblank
+          if (
+            this.jsonblank &&
+            Object.keys(this.jsonblank["database"]).indexOf(videoName) >= 0
+          ) {
+            console.log("replacing blank bwahahaha");
+            this.initialize(
+              this.state.videoName,
+              this.state.videoSrc,
+              this.state.segmentIndex,
+              this.jsonblank,
+              "generated"
+            );
+          }
         }
       } else {
         segmentIndex = null;
@@ -537,7 +553,7 @@ class AnnotationApp extends Component {
 
   parseJSONBlank(value) {
     // when json and video don't match or when there's no uploaded json
-    console.log("got a blank one");
+    this.jsonblank = JSON.parse(value);
     if (
       !this.state.json ||
       Object.keys(this.state.json["database"]).indexOf(this.state.videoName) < 0
@@ -547,7 +563,7 @@ class AnnotationApp extends Component {
         this.state.videoName,
         this.state.videoSrc,
         this.state.segmentIndex,
-        JSON.parse(value),
+        this.jsonblank,
         "generated"
       );
     }
