@@ -127,7 +127,6 @@ class AnnotationApp extends Component {
     this.jumpTo = this.jumpTo.bind(this);
     this.parseJSONInput = this.parseJSONInput.bind(this);
     this.parseJSONBlank = this.parseJSONBlank.bind(this);
-    // this.frameToSecs = this.frameToSecs.bind(this);
     this.playSection = this.playSection.bind(this);
     this.videoPreviewChange = this.videoPreviewChange.bind(this);
     this.export = this.export.bind(this);
@@ -148,7 +147,6 @@ class AnnotationApp extends Component {
     this.scenepool = {}; // undeleted scenes (for options)
     this.actions = {};
     this.actionpool = {}; // undeleted events (for options)
-    // this.parseFile = this.parseFile.bind(this);
     this.initialize = this.initialize.bind(this);
     this.jsonblank = null;
   }
@@ -160,9 +158,9 @@ class AnnotationApp extends Component {
   };
 
   async componentDidMount() {
+    var success = true;
     try {
       const eventsR = await (await fetch("/api/events")).json();
-      console.log("SUCCESS event fetch", eventsR);
       eventsR["message"].forEach(obj => {
         var { id, eventName, deleted } = obj;
         this.events[id] = eventName;
@@ -171,13 +169,12 @@ class AnnotationApp extends Component {
           this.eventpool[id] = eventName;
         }
       });
-      console.log(this.eventpool);
     } catch (error) {
-      console.log(error, "OH NO");
+      success = false;
     }
+
     try {
       const actionsR = await (await fetch("/api/actions")).json();
-      console.log("SUCCESS action fetch", actionsR);
       actionsR["message"].forEach(obj => {
         var { id, actionName, deleted } = obj;
         this.actions[id] = actionName;
@@ -186,13 +183,11 @@ class AnnotationApp extends Component {
           this.actionpool[id] = actionName;
         }
       });
-      console.log(this.actions);
     } catch (error) {
-      console.log(error, "OH NO");
+      success = false;
     }
     try {
       const scenesR = await (await fetch("/api/scenes")).json();
-      console.log("SUCCESS scene fetch", scenesR);
       scenesR["message"].forEach(obj => {
         var { id, sceneName, deleted } = obj;
         this.scenes[id] = sceneName;
@@ -201,10 +196,17 @@ class AnnotationApp extends Component {
           this.scenepool[id] = sceneName;
         }
       });
-      console.log(this.scenes);
-      console.log(this.scenepool);
     } catch (error) {
-      console.log(error, "OH NO");
+      success = false;
+    }
+
+    if (!success) {
+      const r = window.confirm(
+        "There has been an error connecting with the server. Would you like to refresh? If this error persists, please contact the administrator."
+      );
+      if (r) {
+        document.location.reload();
+      }
     }
   }
 
@@ -261,15 +263,15 @@ class AnnotationApp extends Component {
   }
 
   markers(player, marklist) {
-    console.log(marklist, player.duration());
     var playheadWell = document.getElementsByClassName(
       "vjs-progress-holder vjs-slider"
     )[0];
+
     var elements = playheadWell.getElementsByClassName("vjs-marker");
     while (elements[0]) {
       playheadWell.removeChild(elements[0]);
     }
-    // console.log(marklist);
+
     marklist.forEach((marker, i) => {
       var elem = document.createElement("div");
       elem.className = "vjs-marker";
@@ -280,8 +282,6 @@ class AnnotationApp extends Component {
   }
 
   async fetchFromDatabase(videoName) {
-    console.log("fetchFromDatabase", videoName);
-
     try {
       await (await fetch("/api/start/", {
         method: "POST",
@@ -294,10 +294,10 @@ class AnnotationApp extends Component {
       }))
         .json()
         .then(message => {
-          // console.log(message);
+          // TODO: maybe send meaningful message on error?
           const { id, currentJson } = message["message"][0];
           this.id = id;
-          // console.log("MY ID", this.id);
+
           if (currentJson) {
             const r = window.confirm(
               "You have previously saved work. Restore?"
@@ -307,21 +307,9 @@ class AnnotationApp extends Component {
             }
           }
         });
-      // alert("MY ID", this.id);
-      // alert("MESSAGE", message[]);
     } catch (err) {
       console.log(err);
     }
-    // await fetch("/api/start/", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json"
-    //   },
-    //   body: JSON.stringify({
-    //     videoName,
-    //   })
-    // }).then((id) => {
-    //   return id.json()}).then(id => {console.log(id); this.id = id;});
   }
 
   async addToDatabase() {
@@ -369,22 +357,16 @@ class AnnotationApp extends Component {
     jsonName = this.state.jsonName
   ) {
     if (videoName !== this.state.videoName || json !== this.state.json) {
-      console.log(this.state.jsonName === "", this.state.jsonName);
       if (videoName && json) {
         // if video and json match
-        console.log("json and video present and change detected");
         if (Object.keys(json["database"]).indexOf(videoName) >= 0) {
-          console.log("json and video match");
           this.setState({
             saved: true,
             visibleMenu: true,
             history: [[json["database"][videoName], segmentIndex]],
             historyIndex: 0
           });
-          // } else if (this.state.jsonName === "") {
-          //   // if json was generated from before do nothing until new json is generated
         } else {
-          console.log("clearing history");
           // if not match and jsonName is blank, this means new video that needs new blank
           alert(
             "The video and json do not match. Please wait to edit from scratch or upload the correct json file. "
@@ -402,7 +384,6 @@ class AnnotationApp extends Component {
             this.jsonblank &&
             Object.keys(this.jsonblank["database"]).indexOf(videoName) >= 0
           ) {
-            console.log("replacing blank bwahahaha");
             this.initialize(
               this.state.videoName,
               this.state.videoSrc,
@@ -416,12 +397,11 @@ class AnnotationApp extends Component {
         segmentIndex = null;
         this.setState({
           videoEndSecs: null,
-          // segmentIndex: null,
           history: []
         });
       }
     } else {
-      alert("THIS HAPPENS???");
+      console.log("this should not happen with initialize.");
     }
 
     this.setState({
@@ -443,21 +423,9 @@ class AnnotationApp extends Component {
       this.setState({
         videoEndSecs: null
       });
-      // this.setState({
-      //   videoName: null,
-      //   videoSrc: null,
-      //   segmentIndex: null,
-      //   videoEndSecs: null
-      // });
       player.reset();
       return;
     }
-
-    // // if input changed but there was a previous videoSrc
-    // // TODO: generate unique segmentIndex per new upload of video, just to reset videopreview and list
-    // if (this.state.videoSrc) {
-    //   // segmentIndex = this.state.segmentIndex + '0';
-    // }
 
     if (player.canPlayType(file.type) === "") {
       alert(
@@ -483,14 +451,6 @@ class AnnotationApp extends Component {
       },
       null
     );
-    // this.setState({
-    //   videoName: file.name.substring(0, file.name.lastIndexOf(".")),
-    //   videoSrc: {
-    //     src: fileURL,
-    //     type: file.type
-    //   },
-    //   segmentIndex: null
-    // });
 
     player.on("loadedmetadata", () => {
       this.setState({
@@ -507,9 +467,6 @@ class AnnotationApp extends Component {
 
   parseJSONInput(event) {
     if (!event.target.files[0]) {
-      // this.setState({
-      //   json: null
-      // });
       this.initialize(
         this.state.videoName,
         this.state.videoSrc,
@@ -536,9 +493,6 @@ class AnnotationApp extends Component {
         this.state.segmentIndex,
         json
       );
-      // this.setState({
-      //   json: json
-      // });
     };
 
     reader.readAsText(event.target.files[0]);
@@ -551,6 +505,9 @@ class AnnotationApp extends Component {
     });
   }
 
+  /**
+   * Called by hidden input input_json_blank, which index.html puts generated blank files into.
+   */
   parseJSONBlank(value) {
     // when json and video don't match or when there's no uploaded json
     this.jsonblank = JSON.parse(value);
@@ -558,7 +515,6 @@ class AnnotationApp extends Component {
       !this.state.json ||
       Object.keys(this.state.json["database"]).indexOf(this.state.videoName) < 0
     ) {
-      console.log("replacing blank bwahahaha");
       this.initialize(
         this.state.videoName,
         this.state.videoSrc,
@@ -597,7 +553,6 @@ class AnnotationApp extends Component {
       myPlayer.currentTime(start);
       var pauseFunc = function(e) {
         if (myPlayer.currentTime() >= end) {
-          console.log("paused", myPlayer.currentTime(), end);
           myPlayer.pause();
           myPlayer.off("timeupdate", pauseFunc);
         }
@@ -781,6 +736,9 @@ class AnnotationApp extends Component {
     });
   }
 
+  /**
+   * handler for deleting events from sidebar, differs in behavior with normal deleteEvent on handling the new segmentIndex
+   */
   deleteEventFromSidebar(segmentIndex) {
     if (segmentIndex === this.state.segmentIndex) {
       this.deleteEvent(segmentIndex);
@@ -902,9 +860,6 @@ class AnnotationApp extends Component {
   }
 
   setScenesActions(items, mode) {
-    // console.log(
-    //   "triggered" + this.state.segmentIndex + mode + items.toString()
-    // );
     var metadata;
     if (mode === "scenes") {
       metadata = update(
@@ -997,7 +952,6 @@ class AnnotationApp extends Component {
 
   renderEvents() {
     // TODO: Stop frequent renderEvents?
-    // console.log("EVENTS", this.state.history);
     return this.state.history.length > 0
       ? "annotations" in
         this.state.history[
@@ -1079,16 +1033,6 @@ class AnnotationApp extends Component {
       ? currentMetadata["annotations"].length > 0
       : false;
 
-    console.log(
-      this.state.segmentIndex,
-      editReady && thereAreEvents
-        ? this.eventpool[
-            currentMetadata["annotations"][this.state.segmentIndex][
-              "labelEventIdx"
-            ]
-          ] //TODO: labelEventIndex?
-        : null
-    );
     return (
       <div style={{ display: "flex", height: "100vh", flexDirection: "row" }}>
         <GlobalHotKeys keyMap={keyMap} handlers={this.handlers} />
@@ -1231,17 +1175,6 @@ class AnnotationApp extends Component {
               style={{ float: "right", marginRight: 0 }}
               onClick={() => this.setState({ visibleScenesActions: false })}
             />
-            {/* <Button
-              size="small"
-              icon="eye"
-              labelPosition="left"
-              onClick={() => this.deleteEvent(this.state.segmentIndex)}
-              disabled={Object.keys(this.state.history).length === 0} //only have history with uploaded json and vid matching
-              style={{ float: "right", margin: "5px 10px" }}
-            >
-              {" "}
-              <Icon name="remove circle" size="small" />
-            </Button> */}
           </div>
           <ScenesActions
             key={this.state.segmentIndex + "scenes"}
@@ -1263,8 +1196,6 @@ class AnnotationApp extends Component {
             sourceall={this.scenes}
             onChange={this.setScenesActions}
           />
-          {/* </Grid.Column>
-          <Grid.Column> */}
           <ScenesActions
             key={this.state.segmentIndex + "actions"}
             mode="actions"
@@ -1290,24 +1221,8 @@ class AnnotationApp extends Component {
             backgroundColor: "#ddd",
             alignItems: "center",
             justifyContent: "space-between"
-            // overflowX: "auto"
           }}
         >
-          {/* <Form
-          method="post"
-          encType="multipart/form-data"
-        >
-          <Form.Input
-            label="Upload files from disk"
-            multiple
-            type="file"
-            id="videos"
-            name="videos"
-            accept="video/*"
-            // onChange={(e) => this.setState({video: e.target.value})}
-          />
-          <Button type="submit">Upload</Button>
-        </Form> */}
           <div
             style={{
               display: "flex",
@@ -1334,7 +1249,6 @@ class AnnotationApp extends Component {
                 type="file"
                 accept="video/*"
                 onChange={e => {
-                  // this.setState({ video: e.target.value });
                   this.playSelectedFile(e);
                 }}
               />
@@ -1358,12 +1272,10 @@ class AnnotationApp extends Component {
                 id="input_json_blank"
                 type="text"
                 onChange={e => {
-                  console.log(" you have reached me");
                   this.parseJSONBlank(e.target.value);
                 }}
               />
             </div>
-            {/* below this.state.video should be a prop passed on from project page or maybe not*/}
             <div
               style={{
                 display: "flex",
@@ -1380,7 +1292,6 @@ class AnnotationApp extends Component {
                   padding: "5px"
                 }}
               >
-                {/* {"CURRENT TIME:"}{this.state.currentTime}<br/> */}
                 <h4 style={{ margin: "5px" }}>
                   Video Name: {this.state.videoName}
                 </h4>
@@ -1396,8 +1307,6 @@ class AnnotationApp extends Component {
                       )
                     : 0}
                 </h4>
-                {/*                   
-                <br/> */}
                 <Button
                   primary
                   compact
@@ -1436,8 +1345,6 @@ class AnnotationApp extends Component {
               </div>
             </div>
           </div>
-          {/* <Grid stackable columns = {2}>
-            <Grid.Column> */}
           <div
             style={{
               display: "flex",
@@ -1454,13 +1361,7 @@ class AnnotationApp extends Component {
             >
               <Dimmer active={active} content={content} />
               <Divider style={{ margin: 0 }} />
-              {/* <Grid columns = {3} divided style={{
-                  display: "flex",
-                  flex: 1,
-                  flexDirection: "row"
-                }}> */}
               <div
-                // className="container"
                 style={{
                   display: "flex",
                   flex: 1,
@@ -1473,7 +1374,6 @@ class AnnotationApp extends Component {
                   alignContent: "flex-start"
                 }}
               >
-                {/* <Grid.Column> */}
                 <div
                   style={{
                     display: "flex",
@@ -1482,7 +1382,6 @@ class AnnotationApp extends Component {
                     width: "100%",
                     paddingBottom: "5px",
                     height: "100%"
-                    // borderBottom: "1px solid #ddd"
                   }}
                 >
                   <div style={{ display: "block", padding: "5px 10px" }}>
@@ -1593,24 +1492,9 @@ class AnnotationApp extends Component {
                     </div>
                   </div>
                 </div>
-                {/* </Grid.Column>
-                <Grid.Column> */}
-                {/* </Grid.Column> */}
-                {/* </div> */}
               </div>
-              {/* </Grid> */}
             </Dimmer.Dimmable>
           </div>
-
-          {/* </Dimmer.Dimmable> */}
-          {/* </Grid.Column>
-            <Grid.Column> */}
-          {/* <List> */}
-
-          {/* </List> */}
-
-          {/* </Grid.Column>
-          </Grid> */}
         </div>
       </div>
     );

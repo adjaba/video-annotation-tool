@@ -1,5 +1,3 @@
-import videojs from "video.js";
-
 export function frameToSecs(frame, fps) {
   if (!fps) {
     return new Error("fps not defined");
