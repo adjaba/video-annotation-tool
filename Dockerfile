@@ -1,20 +1,21 @@
 FROM node:10.15.2
 
-RUN apt-get -y update && apt-get -y upgrade
+RUN apt-get -y update
+RUN apt-get -y upgrade
+RUN apt-get install -y sqlite3 libsqlite3-dev
 
+WORKDIR /db
 WORKDIR /app
 COPY . .
-WORKDIR /app/server
 RUN yarn install
+RUN cd client && yarn install
+RUN cd server && yarn install
+RUN cd client && yarn build
 
-WORKDIR /app/client
-RUN yarn install
-
-WORKDIR /app
-RUN yarn install
+ENV DATABASE_FILE_PATH=/db/db.sqlite
 
 ENV PORT=3000
 ENV NODE_ENV=production
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+CMD ["node", "server/src/index.js"]
