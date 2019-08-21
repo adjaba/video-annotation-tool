@@ -111,6 +111,46 @@
           // bit 4 set means finalized
           if (state & 0x08) {
             finalResult = mi.inform();
+            finalJson = x2js.xml_str2json(finalResult);
+
+            var frameCount =
+              finalJson["MediaInfo"]["media"]["track"][1]["FrameCount"];
+            var duration =
+              finalJson["MediaInfo"]["media"]["track"][1]["Duration"];
+            var fps =
+              parseFloat(
+                finalJson["MediaInfo"]["media"]["track"][1]["FrameRate"]
+              ) || frameCount / duration;
+
+            var blankObj = JSON.stringify({
+              database: {
+                [file.name.substring(0, file.name.lastIndexOf("."))]: {
+                  duration: duration,
+                  fps: fps,
+                  annotations: []
+                }
+              }
+            });
+
+            const e = new Event("input", { bubbles: true });
+            const element = document.querySelector("#input_json_blank");
+            const valueSetter = Object.getOwnPropertyDescriptor(
+              element,
+              "value"
+            ).set;
+            const prototype = Object.getPrototypeOf(element);
+            const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+              prototype,
+              "value"
+            ).set;
+
+            if (valueSetter && valueSetter !== prototypeValueSetter) {
+              prototypeValueSetter.call(element, blankObj);
+            } else {
+              valueSetter.call(element, blankObj);
+            }
+            element.dispatchEvent(e);
+
             mi.close();
             processingDone();
             return;
@@ -136,11 +176,15 @@
               finalJson["MediaInfo"]["media"]["track"][1]["FrameCount"];
             var duration =
               finalJson["MediaInfo"]["media"]["track"][1]["Duration"];
+            var fps =
+              parseFloat(
+                finalJson["MediaInfo"]["media"]["track"][1]["FrameRate"]
+              ) || frameCount / duration;
             var blankObj = JSON.stringify({
               database: {
                 [file.name.substring(0, file.name.lastIndexOf("."))]: {
                   duration: duration,
-                  fps: frameCount / duration,
+                  fps: fps,
                   annotations: []
                 }
               }
