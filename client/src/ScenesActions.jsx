@@ -13,11 +13,8 @@ export default class ScenesActions extends React.Component {
     };
   }
 
-  componentWillUnmount() {
-    // if (this.props.items.length=== 0 && this.props.index !== null){
-    //   alert("You have not put any "+ this.props.mode+".");
-    // }
-  }
+  componentWillUnmount() {}
+
   render() {
     var pool = Object.values(this.props.source); // this is the constant pool to filter upon, for options pool filtering
 

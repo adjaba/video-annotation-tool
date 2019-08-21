@@ -551,7 +551,7 @@ class AnnotationApp extends Component {
         ][0]["fps"]
       ) || myPlayer.duration();
 
-    if (end > start) {
+    if (end >= start) {
       myPlayer.currentTime(start);
       var pauseFunc = function(e) {
         if (myPlayer.currentTime() >= end) {
@@ -685,57 +685,53 @@ class AnnotationApp extends Component {
    * adds new event at the end of event list
    * default start frame is 1 more than end frame of last event in list
    * default end frame is end of video
+   * this navigates to new frame - if old frame has no scenes or actions, alert
    */
   addEvent() {
-    const newIndex = this.state.history[
+    const currentMetadata = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
-    ][0]["annotations"].length;
+    ][0];
+
+    const newIndex = currentMetadata["annotations"].length;
 
     const videoEnd = secsToFrame(
       this.state.videoEndSecs,
-      this.state.history[
-        this.state.history.length - 1 - this.state.historyIndex
-      ][0]["fps"]
+      currentMetadata["fps"]
     );
 
     const segmentStart =
       newIndex < 1
         ? 0
         : Math.min(
-            this.state.history[
-              this.state.history.length - 1 - this.state.historyIndex
-            ][0]["annotations"][newIndex - 1]["segment"][1] + 1,
+            currentMetadata["annotations"][newIndex - 1]["segment"][1] + 1,
             videoEnd
           );
 
-    var metadata = update(
-      this.state.history[
-        this.state.history.length - 1 - this.state.historyIndex
-      ][0],
-      {
-        annotations: {
-          $push: [
-            {
-              segmentIndex: newIndex,
-              labelEvent: null,
-              labelEventIdx: null,
-              segment: [segmentStart, videoEnd],
-              labelScene: [],
-              labelSceneIndex: [],
-              numberOfScenes: 0,
-              labelAction: [],
-              labelActionIndex: [],
-              numberOfActions: []
-            }
-          ]
-        }
+    var metadata = update(currentMetadata, {
+      annotations: {
+        $push: [
+          {
+            segmentIndex: newIndex,
+            labelEvent: null,
+            labelEventIdx: null,
+            segment: [segmentStart, videoEnd],
+            labelScene: [],
+            labelSceneIndex: [],
+            numberOfScenes: 0,
+            labelAction: [],
+            labelActionIndex: [],
+            numberOfActions: []
+          }
+        ]
       }
-    );
+    });
 
     this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
     this.setState({
       visibleScenesActions: true
     });
+
+    this.alertEventSceneAction();
   }
 
   /**
@@ -812,7 +808,7 @@ class AnnotationApp extends Component {
       return;
     }
 
-    var currentMetadata = this.state.history[
+    const currentMetadata = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
     ][0];
 
@@ -961,6 +957,67 @@ class AnnotationApp extends Component {
     this.saveMetadata(metadata);
   }
 
+  alertEventSceneAction() {
+    const currentMetadata = this.state.history[
+      this.state.history.length - 1 - this.state.historyIndex
+    ][0];
+
+    const newIndex = currentMetadata["annotations"].length;
+
+    const editReady =
+      this.state.segmentIndex > 0 || this.state.segmentIndex === 0;
+    const thereAreEvents = newIndex > 0;
+
+    const eventType =
+      editReady && thereAreEvents
+        ? currentMetadata["annotations"][this.state.segmentIndex][
+            "labelEventIdx"
+          ] || ""
+        : //TODO: labelEventIndex?
+          null;
+    const sceneItems =
+      editReady && thereAreEvents
+        ? currentMetadata["annotations"][this.state.segmentIndex][
+            "labelSceneIndex"
+          ]
+        : [];
+    const actionItems =
+      editReady && thereAreEvents
+        ? currentMetadata["annotations"][this.state.segmentIndex][
+            "labelActionIndex"
+          ]
+        : [];
+
+    /**
+     * If event type selected is not in current undeleted events, send an alert for user to input event type.
+     */
+    if (!(eventType in this.eventpool)) {
+      alert(
+        "[WARNING] Event " +
+          this.state.segmentIndex +
+          ": You have not selected a valid event type."
+      );
+    }
+
+    /**
+     * If the current event's scenes or actions are empty, send an alert.
+     */
+    if (sceneItems.length === 0 && this.state.segmentIndex !== null) {
+      alert(
+        "[WARNING] Event " +
+          this.state.segmentIndex +
+          ": You have not put any scenes."
+      );
+    }
+
+    if (actionItems.length === 0 && this.state.segmentIndex !== null) {
+      alert(
+        "[WARNING] Event " +
+          this.state.segmentIndex +
+          ": You have not put any actions."
+      );
+    }
+  }
   renderEvents() {
     // TODO: Stop frequent renderEvents?
     return this.state.history.length > 0
@@ -989,6 +1046,9 @@ class AnnotationApp extends Component {
                     saved: true
                   });
                 }
+
+                this.alertEventSceneAction();
+
                 await this.setState({
                   segmentStart: prop["segment"][0],
                   segmentEnd: prop["segment"][1],
