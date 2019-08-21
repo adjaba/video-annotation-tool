@@ -304,8 +304,20 @@ class AnnotationApp extends Component {
             );
             if (r) {
               await this.setState(JSON.parse(currentJson));
-              if (this.state.segmentIndex > 0 || this.state.segmentIndex === 0)
-                document.getElementById("play_section").click();
+              if (
+                this.state.segmentIndex > 0 ||
+                this.state.segmentIndex === 0
+              ) {
+                const player = videojs("videoJS");
+                const duration = videojs("videoJS").duration();
+                if (isNaN(duration)) {
+                  player.one("loadedmetadata", () => {
+                    document.getElementById("play_section").click();
+                  });
+                } else {
+                  document.getElementById("play_section").click();
+                }
+              }
             }
           }
         });
@@ -532,24 +544,17 @@ class AnnotationApp extends Component {
    */
 
   //TODO: figure out whether document.getElementById("start") can be replaced by this.state.segmentStart, etc.
-  playSection() {
+  async playSection() {
+    var fps = this.state.history[
+      this.state.history.length - 1 - this.state.historyIndex
+    ][0]["fps"];
+
     var myPlayer = videojs.getPlayer("videoJS");
-    var startInput = parseInt(document.getElementById("start").value);
-    var endInput = parseInt(document.getElementById("end").value);
-    var start =
-      frameToSecs(
-        startInput,
-        this.state.history[
-          this.state.history.length - 1 - this.state.historyIndex
-        ][0]["fps"]
-      ) || 0;
-    var end =
-      frameToSecs(
-        endInput,
-        this.state.history[
-          this.state.history.length - 1 - this.state.historyIndex
-        ][0]["fps"]
-      ) || myPlayer.duration();
+    var startInput = this.state.segmentStart;
+    var endInput = this.state.segmentEnd;
+    var start = frameToSecs(startInput, fps) || 0;
+
+    var end = frameToSecs(endInput, fps) || myPlayer.duration();
 
     if (end >= start) {
       myPlayer.currentTime(start);
@@ -562,7 +567,8 @@ class AnnotationApp extends Component {
       myPlayer.on("timeupdate", pauseFunc);
       myPlayer.play();
     } else {
-      alert("end time should be bigger than start time");
+      // if (isNaN(end))
+      alert("end time" + end + "should be bigger than start time" + start);
       return;
     }
   }
@@ -990,32 +996,22 @@ class AnnotationApp extends Component {
 
     /**
      * If event type selected is not in current undeleted events, send an alert for user to input event type.
-     */
-    if (!(eventType in this.eventpool)) {
-      alert(
-        "[WARNING] Event " +
-          this.state.segmentIndex +
-          ": You have not selected a valid event type."
-      );
-    }
-
-    /**
      * If the current event's scenes or actions are empty, send an alert.
      */
-    if (sceneItems.length === 0 && this.state.segmentIndex !== null) {
-      alert(
-        "[WARNING] Event " +
-          this.state.segmentIndex +
-          ": You have not put any scenes."
-      );
-    }
+    const eventWarning =
+      editReady && thereAreEvents && !(eventType in this.eventpool);
+    const sceneWarning =
+      sceneItems.length === 0 && this.state.segmentIndex !== null;
+    const actionWarning =
+      actionItems.length === 0 && this.state.segmentIndex !== null;
 
-    if (actionItems.length === 0 && this.state.segmentIndex !== null) {
-      alert(
-        "[WARNING] Event " +
-          this.state.segmentIndex +
-          ": You have not put any actions."
-      );
+    const message =
+      (eventWarning ? " You have not selected a valid event type." : "") +
+      (sceneWarning ? " You have not put any scenes." : "") +
+      (actionWarning ? " You have not put any actions." : "");
+
+    if (eventWarning || sceneWarning || actionWarning) {
+      alert("[WARNING] Event " + this.state.segmentIndex + ":" + message);
     }
   }
   renderEvents() {
