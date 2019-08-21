@@ -64,6 +64,7 @@ export default class VideoPreview extends Component {
   handleChange = event => {
     if (event.target.value > secsToFrame(this.props.end, this.props.fps)) {
       alert("Inputted frame bigger than last frame");
+      return;
     }
     this.props.onChange(parseInt(event.target.value), this.props.name);
   };

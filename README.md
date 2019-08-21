@@ -69,7 +69,7 @@ On video upload:
 - If previously edited before, there is an option to restore the browser state from the last time the video was edited.
   ![](/gifs/VArestore.gif)
 
-- You can upload a JSON with at least the following structure: (Note that duration is in seconds)
+- You can upload a JSON with at least the following structure: (Note that duration is in seconds, replace VIDEO_NAME with name of video, and fill in duration and fps according to the video's metadata.)
 
 ```json
 {

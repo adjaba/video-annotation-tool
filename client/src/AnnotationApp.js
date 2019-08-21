@@ -293,7 +293,7 @@ class AnnotationApp extends Component {
         })
       }))
         .json()
-        .then(message => {
+        .then(async message => {
           // TODO: maybe send meaningful message on error?
           const { id, currentJson } = message["message"][0];
           this.id = id;
@@ -303,7 +303,9 @@ class AnnotationApp extends Component {
               "You have previously saved work. Restore?"
             );
             if (r) {
-              this.setState(JSON.parse(currentJson));
+              await this.setState(JSON.parse(currentJson));
+              if (this.state.segmentIndex > 0 || this.state.segmentIndex === 0)
+                document.getElementById("play_section").click();
             }
           }
         });
@@ -770,7 +772,16 @@ class AnnotationApp extends Component {
       }
     );
 
-    this.saveMetadata(metadata, null, null, null);
+    const numberOfEvents = this.state.history[
+      this.state.history.length - 1 - this.state.historyIndex
+    ][0]["annotations"].length;
+
+    this.saveMetadata(
+      metadata,
+      numberOfEvents > 1 ? Math.max(0, segmentIndex - 1) : null,
+      null,
+      null
+    );
   }
 
   undo() {
@@ -961,11 +972,12 @@ class AnnotationApp extends Component {
             this.state.history.length - 1 - this.state.historyIndex
           ][0]["annotations"].map((prop, i) => (
             <Event
+              id={"event_" + i}
               key={i}
               segment={prop.segment}
               labelEvent={this.events[prop.labelEventIdx]}
               index={i}
-              onClick={() => {
+              onClick={async () => {
                 if (!this.state.saved) {
                   const r = window.confirm(
                     "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
@@ -977,12 +989,13 @@ class AnnotationApp extends Component {
                     saved: true
                   });
                 }
-                this.setState({
+                await this.setState({
                   segmentStart: prop["segment"][0],
                   segmentEnd: prop["segment"][1],
                   segmentIndex: prop["segmentIndex"],
                   visibleScenesActions: true
                 });
+                document.getElementById("play_section").click();
               }}
               onDeleteClick={e => {
                 this.deleteEventFromSidebar(prop["segmentIndex"]);
@@ -1178,6 +1191,7 @@ class AnnotationApp extends Component {
           </div>
           <ScenesActions
             key={this.state.segmentIndex + "scenes"}
+            index={this.state.segmentIndex}
             mode="scenes"
             items={
               editReady && thereAreEvents
@@ -1198,6 +1212,7 @@ class AnnotationApp extends Component {
           />
           <ScenesActions
             key={this.state.segmentIndex + "actions"}
+            index={this.state.segmentIndex}
             mode="actions"
             items={
               editReady && thereAreEvents
@@ -1408,6 +1423,7 @@ class AnnotationApp extends Component {
                           : //TODO: labelEventIndex?
                             null
                       }
+                      placeholder="Select event type or search"
                     ></Dropdown>
                   </div>
                   <div
@@ -1457,6 +1473,7 @@ class AnnotationApp extends Component {
                       }}
                     >
                       <Button
+                        id="play_section"
                         primary
                         content="Play section"
                         icon="play"
