@@ -217,6 +217,7 @@ class AnnotationApp extends Component {
   componentDidUpdate(prevProps, prevState) {
     // if there is no video and json was blank ("" or null)
     // this scenario would occur after changing the video for a previously blank json
+    console.log(this.state.segmentIndex);
     if (!this.state.videoName && this.state.jsonName === "") {
       this.setState({
         json: null,
@@ -267,6 +268,7 @@ class AnnotationApp extends Component {
       const currentMetadata = this.state.history[
         this.state.history.length - 1 - this.state.historyIndex
       ][0];
+      console.log(this.state.segmentIndex, currentMetadata["annotations"]);
       if (this.state.segmentStart === null || this.state.segmentEnd === null) {
         this.setState({
           segmentStart:
@@ -673,44 +675,41 @@ class AnnotationApp extends Component {
     metadata,
     segmentIndex = this.state.segmentIndex,
     segmentStart = this.state.segmentStart,
-    segmentEnd = this.state.segmentEnd,
-    sort = false
+    segmentEnd = this.state.segmentEnd
   ) {
-    if (sort) {
-      // sorting metadata by time
-      metadata = update(metadata, {
-        annotations: {
-          $apply: arr =>
-            arr.sort(
-              (a, b) =>
-                a["segment"][0] - b["segment"][0] ||
-                a["segment"][1] - b["segment"][1]
-            )
-        }
-      });
+    // sorting metadata by time
+    metadata = update(metadata, {
+      annotations: {
+        $apply: arr =>
+          arr.sort(
+            (a, b) =>
+              a["segment"][0] - b["segment"][0] ||
+              a["segment"][1] - b["segment"][1]
+          )
+      }
+    });
 
-      // getting new index after sort
-      var newIndex =
-        segmentIndex > 0 || segmentIndex === 0
-          ? metadata["annotations"].reduce((acc, curr, index) => {
-              if (curr["segmentIndex"] === segmentIndex) {
-                acc.push(index);
-              }
-              return acc;
-            }, [])[0]
-          : null;
+    // getting new index after sort
+    var newIndex =
+      segmentIndex > 0 || segmentIndex === 0
+        ? metadata["annotations"].reduce((acc, curr, index) => {
+            if (curr["segmentIndex"] === segmentIndex) {
+              acc.push(index);
+            }
+            return acc;
+          }, [])[0]
+        : null;
 
-      // set segmentIndex so that it matches index in array
-      metadata = update(metadata, {
-        annotations: {
-          $apply: arr => {
-            return arr.map((event, index) => {
-              return update(event, { segmentIndex: { $set: index } });
-            });
-          }
+    // set segmentIndex so that it matches index in array
+    metadata = update(metadata, {
+      annotations: {
+        $apply: arr => {
+          return arr.map((event, index) => {
+            return update(event, { segmentIndex: { $set: index } });
+          });
         }
-      });
-    }
+      }
+    });
 
     // push this new metadata to history
     var history = update(
@@ -786,7 +785,7 @@ class AnnotationApp extends Component {
       }
     });
 
-    this.saveMetadata(metadata, newIndex, segmentStart, videoEnd, true);
+    this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
     this.setState({
       visibleScenesActions: true
     });
@@ -815,8 +814,7 @@ class AnnotationApp extends Component {
         metadata,
         this.state.segmentIndex,
         this.state.segmentStart,
-        this.state.segmentEnd,
-        true
+        this.state.segmentEnd
       );
     }
   }
@@ -907,8 +905,7 @@ class AnnotationApp extends Component {
       metadata,
       this.state.segmentIndex,
       this.state.segmentStart,
-      this.state.segmentEnd,
-      true
+      this.state.segmentEnd
     );
   }
 
