@@ -975,10 +975,12 @@ class AnnotationApp extends Component {
     ][0];
 
     const saved =
-      currentMetadata["annotations"][this.state.segmentIndex]["segment"][0] ===
+      this.state.segmentIndex === null ||
+      (currentMetadata["annotations"][this.state.segmentIndex]["segment"][0] ===
         this.state.segmentStart &&
-      currentMetadata["annotations"][this.state.segmentIndex]["segment"][1] ===
-        this.state.segmentEnd;
+        currentMetadata["annotations"][this.state.segmentIndex][
+          "segment"
+        ][1] === this.state.segmentEnd);
     if (!saved) {
       const r = window.confirm(alertMessage);
       if (!r) {
