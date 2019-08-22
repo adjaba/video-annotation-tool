@@ -316,6 +316,23 @@ class AnnotationApp extends Component {
                 } else {
                   document.getElementById("play_section").click();
                 }
+
+                const currentMetadata = this.state.history[
+                  this.state.history.length - 1 - this.state.historyIndex
+                ][0];
+                if (this.state.segmentStart === null || this.state.segmentEn)
+                  this.setState({
+                    segmentStart:
+                      this.state.segmentStart ||
+                      currentMetadata["annotations"][this.state.segmentIndex][
+                        "segment"
+                      ][0],
+                    segmentEnd:
+                      this.state.segmentEnd ||
+                      currentMetadata["annotations"][this.state.segmentIndex][
+                        "segment"
+                      ][1]
+                  });
               }
             }
           }
@@ -974,17 +991,19 @@ class AnnotationApp extends Component {
       this.state.history.length - 1 - this.state.historyIndex
     ][0];
 
-    const saved =
-      this.state.segmentIndex === null ||
-      (currentMetadata["annotations"][this.state.segmentIndex]["segment"][0] ===
-        this.state.segmentStart &&
+    if (this.state.segmentIndex > 0 || this.state.segmentIndex === 0) {
+      const saved =
         currentMetadata["annotations"][this.state.segmentIndex][
           "segment"
-        ][1] === this.state.segmentEnd);
-    if (!saved) {
-      const r = window.confirm(alertMessage);
-      if (!r) {
-        return false;
+        ][0] === this.state.segmentStart &&
+        currentMetadata["annotations"][this.state.segmentIndex][
+          "segment"
+        ][1] === this.state.segmentEnd;
+      if (!saved) {
+        const r = window.confirm(alertMessage);
+        if (!r) {
+          return false;
+        }
       }
     }
 
