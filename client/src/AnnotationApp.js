@@ -259,6 +259,40 @@ class AnnotationApp extends Component {
         }
       }
     }
+
+    if (
+      prevState["segmentIndex"] !== this.state.segmentIndex &&
+      this.state.segmentIndex !== null
+    ) {
+      const currentMetadata = this.state.history[
+        this.state.history.length - 1 - this.state.historyIndex
+      ][0];
+      if (this.state.segmentStart === null || this.state.segmentEnd === null) {
+        this.setState({
+          segmentStart:
+            this.state.segmentStart ||
+            currentMetadata["annotations"][this.state.segmentIndex][
+              "segment"
+            ][0],
+          segmentEnd:
+            this.state.segmentEnd ||
+            currentMetadata["annotations"][this.state.segmentIndex][
+              "segment"
+            ][1]
+        });
+      } else {
+        this.setState({
+          segmentStart:
+            currentMetadata["annotations"][this.state.segmentIndex][
+              "segment"
+            ][0],
+          segmentEnd:
+            currentMetadata["annotations"][this.state.segmentIndex][
+              "segment"
+            ][1]
+        });
+      }
+    }
   }
 
   markers(player, marklist) {
@@ -317,22 +351,22 @@ class AnnotationApp extends Component {
                   document.getElementById("play_section").click();
                 }
 
-                const currentMetadata = this.state.history[
-                  this.state.history.length - 1 - this.state.historyIndex
-                ][0];
-                if (this.state.segmentStart === null || this.state.segmentEn)
-                  this.setState({
-                    segmentStart:
-                      this.state.segmentStart ||
-                      currentMetadata["annotations"][this.state.segmentIndex][
-                        "segment"
-                      ][0],
-                    segmentEnd:
-                      this.state.segmentEnd ||
-                      currentMetadata["annotations"][this.state.segmentIndex][
-                        "segment"
-                      ][1]
-                  });
+                // const currentMetadata = this.state.history[
+                //   this.state.history.length - 1 - this.state.historyIndex
+                // ][0];
+                // if (this.state.segmentStart === null || this.state.segmentEnd === null)
+                //   this.setState({
+                //     segmentStart:
+                //       this.state.segmentStart ||
+                //       currentMetadata["annotations"][this.state.segmentIndex][
+                //         "segment"
+                //       ][0],
+                //     segmentEnd:
+                //       this.state.segmentEnd ||
+                //       currentMetadata["annotations"][this.state.segmentIndex][
+                //         "segment"
+                //       ][1]
+                //   });
               }
             }
           }
@@ -639,41 +673,44 @@ class AnnotationApp extends Component {
     metadata,
     segmentIndex = this.state.segmentIndex,
     segmentStart = this.state.segmentStart,
-    segmentEnd = this.state.segmentEnd
+    segmentEnd = this.state.segmentEnd,
+    sort = false
   ) {
-    // sorting metadata by time
-    metadata = update(metadata, {
-      annotations: {
-        $apply: arr =>
-          arr.sort(
-            (a, b) =>
-              a["segment"][0] - b["segment"][0] ||
-              a["segment"][1] - b["segment"][1]
-          )
-      }
-    });
-
-    // getting new index after sort
-    var newIndex =
-      segmentIndex > 0 || segmentIndex === 0
-        ? metadata["annotations"].reduce((acc, curr, index) => {
-            if (curr["segmentIndex"] === segmentIndex) {
-              acc.push(index);
-            }
-            return acc;
-          }, [])[0]
-        : null;
-
-    // set segmentIndex so that it matches index in array
-    metadata = update(metadata, {
-      annotations: {
-        $apply: arr => {
-          return arr.map((event, index) => {
-            return update(event, { segmentIndex: { $set: index } });
-          });
+    if (sort) {
+      // sorting metadata by time
+      metadata = update(metadata, {
+        annotations: {
+          $apply: arr =>
+            arr.sort(
+              (a, b) =>
+                a["segment"][0] - b["segment"][0] ||
+                a["segment"][1] - b["segment"][1]
+            )
         }
-      }
-    });
+      });
+
+      // getting new index after sort
+      var newIndex =
+        segmentIndex > 0 || segmentIndex === 0
+          ? metadata["annotations"].reduce((acc, curr, index) => {
+              if (curr["segmentIndex"] === segmentIndex) {
+                acc.push(index);
+              }
+              return acc;
+            }, [])[0]
+          : null;
+
+      // set segmentIndex so that it matches index in array
+      metadata = update(metadata, {
+        annotations: {
+          $apply: arr => {
+            return arr.map((event, index) => {
+              return update(event, { segmentIndex: { $set: index } });
+            });
+          }
+        }
+      });
+    }
 
     // push this new metadata to history
     var history = update(
@@ -749,17 +786,18 @@ class AnnotationApp extends Component {
       }
     });
 
-    this.saveMetadata(metadata, newIndex, segmentStart, videoEnd);
+    this.saveMetadata(metadata, newIndex, segmentStart, videoEnd, true);
     this.setState({
       visibleScenesActions: true
     });
   }
 
   /**
-   * handler for deleting events from sidebar, differs in behavior with normal deleteEvent on handling the new segmentIndex
+   * Handler for deleting events from sidebar, this allows for deleting events not currently selected
    */
   deleteEventFromSidebar(segmentIndex) {
     if (segmentIndex === this.state.segmentIndex) {
+      console.log("not supposed to go here more than one");
       this.deleteEvent(segmentIndex);
     } else {
       var metadata = update(
@@ -773,11 +811,25 @@ class AnnotationApp extends Component {
         }
       );
 
-      this.saveMetadata(metadata);
+      this.saveMetadata(
+        metadata,
+        this.state.segmentIndex,
+        this.state.segmentStart,
+        this.state.segmentEnd,
+        true
+      );
     }
   }
 
-  deleteEvent(segmentIndex) {
+  /**
+   * Delete segmentIndex (= this.state.segmentIndex).
+   *
+   * Algo:
+   *  Move focus to event before
+   *  Call deleteEventFromSidebar (as if deleted in sidebar to this segmentIndex)
+   * @param {*} segmentIndex
+   */
+  async deleteEvent(segmentIndex) {
     var metadata = update(
       this.state.history[
         this.state.history.length - 1 - this.state.historyIndex
@@ -793,12 +845,11 @@ class AnnotationApp extends Component {
       this.state.history.length - 1 - this.state.historyIndex
     ][0]["annotations"].length;
 
-    this.saveMetadata(
-      metadata,
-      numberOfEvents > 1 ? Math.max(0, segmentIndex - 1) : null,
-      null,
-      null
-    );
+    await this.setState({
+      segmentIndex: numberOfEvents > 1 ? Math.max(0, segmentIndex - 1) : null
+    });
+
+    this.deleteEventFromSidebar(segmentIndex);
   }
 
   undo() {
@@ -852,7 +903,13 @@ class AnnotationApp extends Component {
         }
       }
     });
-    this.saveMetadata(metadata);
+    this.saveMetadata(
+      metadata,
+      this.state.segmentIndex,
+      this.state.segmentStart,
+      this.state.segmentEnd,
+      true
+    );
   }
 
   export() {
