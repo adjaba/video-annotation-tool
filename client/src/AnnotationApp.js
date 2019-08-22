@@ -109,7 +109,6 @@ class AnnotationApp extends Component {
     this.state = {
       currentTime: 0,
       videoName: null,
-      saved: true,
       videoSrc: null,
       json: null,
       jsonName: null,
@@ -375,7 +374,6 @@ class AnnotationApp extends Component {
         // if video and json match
         if (Object.keys(json["database"]).indexOf(videoName) >= 0) {
           this.setState({
-            saved: true,
             visibleMenu: true,
             history: [[json["database"][videoName], segmentIndex]],
             historyIndex: 0
@@ -673,7 +671,6 @@ class AnnotationApp extends Component {
     history = history.slice(Math.max(history.length - 20, 0));
 
     await this.setState({
-      saved: true,
       history: history,
       historyIndex: 0,
       segmentIndex: newIndex,
@@ -826,9 +823,6 @@ class AnnotationApp extends Component {
       currentMetadata["annotations"][this.state.segmentIndex]["segment"][1] ===
         this.state.segmentEnd
     ) {
-      this.setState({
-        saved: true
-      });
       return;
     }
 
@@ -845,7 +839,6 @@ class AnnotationApp extends Component {
   }
 
   export() {
-    // TODO: check if saved right now
     const willProceed = this.alertEventSceneAction("export");
     if (!willProceed) {
       return;
@@ -935,9 +928,9 @@ class AnnotationApp extends Component {
 
   videoPreviewChange(frame, name) {
     if (name === "start") {
-      this.setState({ saved: false, segmentStart: frame });
+      this.setState({ segmentStart: frame });
     } else if (name === "end") {
-      this.setState({ saved: false, segmentEnd: frame });
+      this.setState({ segmentEnd: frame });
     }
   }
 
@@ -1058,31 +1051,6 @@ class AnnotationApp extends Component {
               labelEvent={this.events[prop.labelEventIdx]}
               index={i}
               onClick={async () => {
-                // if (!this.state.saved) {
-                //   const r = window.confirm(
-                //     "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
-                //   );
-                //   if (!r) {
-                //     return;
-                //   }
-                //   this.setState({
-                //     saved: true
-                //   });
-                // }
-                // const currentMetadata = this.state.history[
-                //   this.state.history.length - 1 - this.state.historyIndex
-                // ][0];
-                // const saved = currentMetadata["annotations"][this.state.segmentIndex]["segment"][0] === this.state.segmentStart &&
-                //   currentMetadata["annotations"][this.state.segmentIndex]["segment"][1] === this.state.segmentEnd;
-                // if (!saved){
-                //   const r = window.confirm(
-                //     "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
-                //   );
-                //   if (!r) {
-                //     return;
-                //   }
-                // }
-
                 if (prop["segmentIndex"] !== this.state.segmentIndex) {
                   const willProceed = this.alertEventSceneAction("click");
                   if (!willProceed) {
@@ -1430,7 +1398,6 @@ class AnnotationApp extends Component {
                   onClick={() => {
                     if (!currentMetadata) return;
                     this.setState({
-                      saved: false,
                       segmentStart: secsToFrame(
                         this.state.currentTime,
                         currentMetadata["fps"]
@@ -1448,7 +1415,6 @@ class AnnotationApp extends Component {
                   onClick={() => {
                     if (!currentMetadata) return;
                     this.setState({
-                      saved: false,
                       segmentEnd: secsToFrame(
                         this.state.currentTime,
                         currentMetadata["fps"]
