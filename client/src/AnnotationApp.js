@@ -542,8 +542,6 @@ class AnnotationApp extends Component {
   /**
    * playSection - plays video from this.state.segmentStart to this.state.segmentEnd if the latter is bigger than the former
    */
-
-  //TODO: figure out whether document.getElementById("start") can be replaced by this.state.segmentStart, etc.
   async playSection() {
     var fps = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
@@ -694,6 +692,11 @@ class AnnotationApp extends Component {
    * this navigates to new frame - if old frame has no scenes or actions, alert
    */
   addEvent() {
+    const willProceed = this.alertEventSceneAction("add");
+    if (!willProceed) {
+      return;
+    }
+
     const currentMetadata = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
     ][0];
@@ -736,8 +739,6 @@ class AnnotationApp extends Component {
     this.setState({
       visibleScenesActions: true
     });
-
-    this.alertEventSceneAction();
   }
 
   /**
@@ -845,11 +846,9 @@ class AnnotationApp extends Component {
 
   export() {
     // TODO: check if saved right now
-    if (!this.state.saved) {
-      const r = window.confirm(
-        "You may have unsaved changes. Click OK to export the last saved version. Click cancel to cancel export."
-      );
-      if (!r) return;
+    const willProceed = this.alertEventSceneAction("export");
+    if (!willProceed) {
+      return;
     }
 
     var metadata = this.state.history[
@@ -963,10 +962,36 @@ class AnnotationApp extends Component {
     this.saveMetadata(metadata);
   }
 
-  alertEventSceneAction() {
+  alertEventSceneAction(mode) {
+    var alertMessage;
+    if (mode === "export") {
+      alertMessage =
+        "You have unsaved changes. Click OK to export the last saved version. Click cancel to cancel export.";
+    } else if (mode === "click") {
+      alertMessage =
+        "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?";
+    } else if (mode === "add") {
+      alertMessage =
+        "You have unsaved changes. Adding an event will discard these unsaved changes. Continue?";
+    } else {
+      return; // Not called correctly
+    }
+
     const currentMetadata = this.state.history[
       this.state.history.length - 1 - this.state.historyIndex
     ][0];
+
+    const saved =
+      currentMetadata["annotations"][this.state.segmentIndex]["segment"][0] ===
+        this.state.segmentStart &&
+      currentMetadata["annotations"][this.state.segmentIndex]["segment"][1] ===
+        this.state.segmentEnd;
+    if (!saved) {
+      const r = window.confirm(alertMessage);
+      if (!r) {
+        return false;
+      }
+    }
 
     const newIndex = currentMetadata["annotations"].length;
 
@@ -1013,7 +1038,9 @@ class AnnotationApp extends Component {
     if (eventWarning || sceneWarning || actionWarning) {
       alert("[WARNING] Event " + this.state.segmentIndex + ":" + message);
     }
+    return true;
   }
+
   renderEvents() {
     // TODO: Stop frequent renderEvents?
     return this.state.history.length > 0
@@ -1031,19 +1058,37 @@ class AnnotationApp extends Component {
               labelEvent={this.events[prop.labelEventIdx]}
               index={i}
               onClick={async () => {
-                if (!this.state.saved) {
-                  const r = window.confirm(
-                    "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
-                  );
-                  if (!r) {
+                // if (!this.state.saved) {
+                //   const r = window.confirm(
+                //     "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
+                //   );
+                //   if (!r) {
+                //     return;
+                //   }
+                //   this.setState({
+                //     saved: true
+                //   });
+                // }
+                // const currentMetadata = this.state.history[
+                //   this.state.history.length - 1 - this.state.historyIndex
+                // ][0];
+                // const saved = currentMetadata["annotations"][this.state.segmentIndex]["segment"][0] === this.state.segmentStart &&
+                //   currentMetadata["annotations"][this.state.segmentIndex]["segment"][1] === this.state.segmentEnd;
+                // if (!saved){
+                //   const r = window.confirm(
+                //     "You have unsaved changes. Navigating to another event will discard these unsaved changes. Continue?"
+                //   );
+                //   if (!r) {
+                //     return;
+                //   }
+                // }
+
+                if (prop["segmentIndex"] !== this.state.segmentIndex) {
+                  const willProceed = this.alertEventSceneAction("click");
+                  if (!willProceed) {
                     return;
                   }
-                  this.setState({
-                    saved: true
-                  });
                 }
-
-                this.alertEventSceneAction();
 
                 await this.setState({
                   segmentStart: prop["segment"][0],
