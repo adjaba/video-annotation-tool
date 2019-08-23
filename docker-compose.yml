@@ -2,6 +2,6 @@ version: "3.3"
 services:
   server:
     build: .
-    image: moono/video-annotation-tool:latest
+    image: andrea/video-annotation-tool:latest
     ports:
       - "35003:3000"
