@@ -41,6 +41,10 @@ export default class VideoPreview extends Component {
     }
   }
 
+  shouldComponentUpdate(nextProps) {
+    return this.props !== nextProps;
+  }
+
   /**
    * Update displayed screen in preview.
    */
