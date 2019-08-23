@@ -160,7 +160,6 @@ class AnnotationApp extends Component {
   componentDidUpdate(prevProps, prevState) {
     // if there is no video and json was blank ("" or null)
     // this scenario would occur after changing the video for a previously blank json
-    console.log(this.state.segmentIndex);
     if (!this.state.videoName && this.state.jsonName === "") {
       this.setState({
         json: null,
@@ -233,6 +232,21 @@ class AnnotationApp extends Component {
         });
       }
     }
+
+    if (
+      prevState.segmentIndex !== this.state.segmentIndex &&
+      (this.state.segmentIndex > 0 || this.state.segmentIndex === 0)
+    ) {
+      const player = videojs("videoJS");
+      const duration = videojs("videoJS").duration();
+      if (isNaN(duration)) {
+        player.one("loadedmetadata", () => {
+          document.getElementById("play_section").click();
+        });
+      } else {
+        document.getElementById("play_section").click();
+      }
+    }
   }
 
   markers(player, marklist) {
@@ -281,18 +295,6 @@ class AnnotationApp extends Component {
               this.setState(newState);
               this.fps =
                 newState["json"]["database"][newState["videoName"]]["fps"];
-              console.log(newState.videoSrc);
-              if (newState.segmentIndex > 0 || newState.segmentIndex === 0) {
-                const player = videojs("videoJS");
-                const duration = videojs("videoJS").duration();
-                if (isNaN(duration)) {
-                  player.one("loadedmetadata", () => {
-                    document.getElementById("play_section").click();
-                  });
-                } else {
-                  document.getElementById("play_section").click();
-                }
-              }
             }
           }
         });
@@ -519,7 +521,6 @@ class AnnotationApp extends Component {
    * playSection - plays video from this.state.segmentStart to this.state.segmentEnd if the latter is bigger than the former
    */
   async playSection() {
-    console.log(this.fps);
     var fps = this.fps;
 
     var myPlayer = videojs.getPlayer("videoJS");
@@ -922,9 +923,9 @@ class AnnotationApp extends Component {
 
   videoPreviewChange(frame, name) {
     if (name === "start") {
-      this.setState({ segmentStart: frame });
+      this.setState({ segmentStart: isNaN(frame) ? 0 : frame });
     } else if (name === "end") {
-      this.setState({ segmentEnd: frame });
+      this.setState({ segmentEnd: isNaN(frame) ? 0 : frame });
     }
   }
 
