@@ -54,7 +54,6 @@ class AdminApp extends Component {
   }
 
   async reload() {
-    console.log("HEY");
     try {
       const r = await fetch("/api/videos/");
 
@@ -62,40 +61,32 @@ class AdminApp extends Component {
         window.location = "/admin/login/";
         return;
       }
-
-      const videos = await r.json();
-      this.setState({
-        videos: videos["message"]
-      });
     } catch (error) {
-      console.log(error, "OH NO");
+      console.log(error, "Database connection failure.");
     }
     try {
       const events = await (await fetch("/api/events/")).json();
-      console.log("SUCCESS", events);
       this.setState({
         events: events["message"]
       });
     } catch (error) {
-      console.log(error, "OH NO");
+      console.log(error, "Cannot fetch events - Database connection failure.");
     }
     try {
       const scenes = await (await fetch("/api/scenes/")).json();
-      console.log("SUCCESS scene", scenes);
       this.setState({
         scenes: scenes["message"]
       });
     } catch (error) {
-      console.log(error, "OH NO");
+      console.log(error, "Cannot fetch scenes - Database connection failure.");
     }
     try {
       const actions = await (await fetch("/api/actions/")).json();
-      console.log("SUCCESS", actions);
       this.setState({
         actions: actions["message"]
       });
     } catch (error) {
-      console.log(error, "OH NO");
+      console.log(error, "Cannot fetch actions - Database connection failure.");
     }
   }
 
@@ -279,7 +270,6 @@ class AdminApp extends Component {
     ));
   }
   render() {
-    const { videos } = this.state;
     return (
       <div
         style={{ maxWidth: "1200px", marginLeft: "auto", marginRight: "auto" }}
@@ -289,36 +279,6 @@ class AdminApp extends Component {
           <Button>Annotate</Button>
         </Link>
         {this.renderEventSceneAction()}
-        <Segment>
-          <Table celled>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell>Video Name</Table.HeaderCell>
-                <Table.HeaderCell>JSON</Table.HeaderCell>
-                <Table.HeaderCell>Last Edited</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {(videos || []).map(
-                ({ currentJson, id, lastEdited, videoName }) => (
-                  <Table.Row key={id}>
-                    <Table.Cell>{videoName}</Table.Cell>
-                    <Table.Cell>
-                      {JSON.stringify(
-                        currentJson["history"][
-                          currentJson["history"].length -
-                            1 -
-                            currentJson["historyIndex"]
-                        ][0]
-                      )}
-                    </Table.Cell>
-                    <Table.Cell>{this.convertTimestamp(lastEdited)}</Table.Cell>
-                  </Table.Row>
-                )
-              )}
-            </Table.Body>
-          </Table>
-        </Segment>
       </div>
     );
   }

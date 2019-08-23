@@ -163,6 +163,10 @@ If the last condition is true, the tool shows a confirmation alert for the user 
 
 ![](./gifs/baseballVAalerteventsceneaction.gif)
 
+#### Undo/Redo
+
+The tool stores an edit history containing at most 20 saved states at any time and provides an undo/redo functionality. Undoing will go back to the tool's last saved function, and is triggered by the keyboard shortcut <kbd>CTRL</kbd>+<kbd>Z</kbd>. Redoing is triggered by the keyboard shortcuts <kbd>CTRL</kbd>+<kbd>Y</kbd> and <kbd>Shift</kbd>+<kbd>CTRL</kbd>+<kbd>Z</kbd>.
+
 #### Export
 
 Clicking the export button in the lower lefthand corner (visible in both collapsed and uncollapsed events sidebar) will export the JSON containing the last saved annotations. The filename of the exported JSON will be:

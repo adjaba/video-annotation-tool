@@ -23,8 +23,6 @@ import {
   Divider
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
-// import { init, getMediaInfo } from "./js/MediaInfoPort"
-// import {parseFile} from './FPSpage.js'
 
 import uniqueId from "lodash/uniqueId";
 import { EventEmitter } from "events";
@@ -32,39 +30,7 @@ import { isThisSecond } from "date-fns";
 import { callbackify } from "util";
 import { timer } from "rxjs";
 
-// (function localFileVideoPlayer() {
-// 	'use strict'
-//   var URL = window.URL || window.webkitURL
-//   var displayMessage = function (message, isError) {
-//     var element = document.querySelector('#message')
-//     element.innerHTML = message
-//     element.className = isError ? 'error' : 'info'
-//   }
-//   var playSelectedFile = function (event) {
-//     var file = this.files[0]
-//     var type = file.type
-//     var videoNode = document.querySelector('video')
-//     var canPlay = videoNode.canPlayType(type)
-//     if (canPlay === '') canPlay = 'no'
-//     var message = 'Can play type "' + type + '": ' + canPlay
-//     var isError = canPlay === 'no'
-//     displayMessage(message, isError)
-
-//     if (isError) {
-//       return
-//     }
-
-//     var fileURL = URL.createObjectURL(file)
-//     videoNode.src = fileURL
-//   }
-//   var inputNode = document.getElementById('input')
-//   inputNode.addEventListener('change', playSelectedFile, false)
-// })()
-
 var URL = window.URL || window.webkitURL;
-// var mediaInfo = require('mediainfo');
-// var parser = require('xml2json');
-// var processing = false;
 
 var videoJsOptions = {
   autoplay: true,
@@ -73,35 +39,11 @@ var videoJsOptions = {
   height: 400
 };
 
-var videoPreviewOptions = {
-  autoplay: false,
-  preload: "auto",
-  height: 200
-};
-
 const keyMap = {
   UNDO: "ctrl+z",
   REDO: ["ctrl+y", "shift+ctrl+z"],
   SAVE: "ctrl+s"
 };
-
-// from videojs-markers
-// const defaultSetting = {
-//   markerStyle:{
-//     'width': '7px',
-//     'border-radius': '30%',
-//     'background-color': red,
-//   },
-//   markerTip: {
-//     display: true,
-//     text: function(marker){
-//       return marker.text
-//     },
-//     time: function(marker){
-//       return marker.time
-//     },
-//   },
-// }
 
 class AnnotationApp extends Component {
   constructor(props) {
@@ -148,6 +90,7 @@ class AnnotationApp extends Component {
     this.actionpool = {}; // undeleted events (for options)
     this.initialize = this.initialize.bind(this);
     this.jsonblank = null;
+    this.fps = 0;
   }
 
   handlers = {
@@ -225,12 +168,7 @@ class AnnotationApp extends Component {
       });
     }
 
-    const fps =
-      this.state.history.length > 0
-        ? this.state.history[
-            this.state.history.length - 1 - this.state.historyIndex
-          ][0]["fps"] || null
-        : null;
+    const fps = this.fps;
 
     if (
       prevState["segmentStart"] !== this.state.segmentStart ||
@@ -268,7 +206,7 @@ class AnnotationApp extends Component {
       const currentMetadata = this.state.history[
         this.state.history.length - 1 - this.state.historyIndex
       ][0];
-      console.log(this.state.segmentIndex, currentMetadata["annotations"]);
+
       if (this.state.segmentStart === null || this.state.segmentEnd === null) {
         this.setState({
           segmentStart:
@@ -329,20 +267,22 @@ class AnnotationApp extends Component {
       }))
         .json()
         .then(async message => {
-          // TODO: maybe send meaningful message on error?
+          // TODO: maybe send meaningful message on error?'
           const { id, currentJson } = message["message"][0];
           this.id = id;
-
+          console.log("Restoring", id);
+          console.log(this.state.videoSrc);
           if (currentJson) {
             const r = window.confirm(
               "You have previously saved work. Restore?"
             );
             if (r) {
-              await this.setState(JSON.parse(currentJson));
-              if (
-                this.state.segmentIndex > 0 ||
-                this.state.segmentIndex === 0
-              ) {
+              const newState = JSON.parse(currentJson);
+              this.setState(newState);
+              this.fps =
+                newState["json"]["database"][newState["videoName"]]["fps"];
+              console.log(newState.videoSrc);
+              if (newState.segmentIndex > 0 || newState.segmentIndex === 0) {
                 const player = videojs("videoJS");
                 const duration = videojs("videoJS").duration();
                 if (isNaN(duration)) {
@@ -352,23 +292,6 @@ class AnnotationApp extends Component {
                 } else {
                   document.getElementById("play_section").click();
                 }
-
-                // const currentMetadata = this.state.history[
-                //   this.state.history.length - 1 - this.state.historyIndex
-                // ][0];
-                // if (this.state.segmentStart === null || this.state.segmentEnd === null)
-                //   this.setState({
-                //     segmentStart:
-                //       this.state.segmentStart ||
-                //       currentMetadata["annotations"][this.state.segmentIndex][
-                //         "segment"
-                //       ][0],
-                //     segmentEnd:
-                //       this.state.segmentEnd ||
-                //       currentMetadata["annotations"][this.state.segmentIndex][
-                //         "segment"
-                //       ][1]
-                //   });
               }
             }
           }
@@ -431,6 +354,7 @@ class AnnotationApp extends Component {
             history: [[json["database"][videoName], segmentIndex]],
             historyIndex: 0
           });
+          this.fps = json["database"][videoName]["fps"];
         } else {
           // if not match and jsonName is blank, this means new video that needs new blank
           alert(
@@ -464,6 +388,7 @@ class AnnotationApp extends Component {
           videoEndSecs: null,
           history: []
         });
+        this.fps = 0;
       }
     } else {
       console.log("this should not happen with initialize.");
@@ -594,9 +519,8 @@ class AnnotationApp extends Component {
    * playSection - plays video from this.state.segmentStart to this.state.segmentEnd if the latter is bigger than the former
    */
   async playSection() {
-    var fps = this.state.history[
-      this.state.history.length - 1 - this.state.historyIndex
-    ][0]["fps"];
+    console.log(this.fps);
+    var fps = this.fps;
 
     var myPlayer = videojs.getPlayer("videoJS");
     var startInput = this.state.segmentStart;
@@ -616,7 +540,6 @@ class AnnotationApp extends Component {
       myPlayer.on("timeupdate", pauseFunc);
       myPlayer.play();
     } else {
-      // if (isNaN(end))
       alert("end time" + end + "should be bigger than start time" + start);
       return;
     }
@@ -1597,13 +1520,10 @@ class AnnotationApp extends Component {
                       frame={
                         editReady
                           ? this.state.segmentEnd
-                          : secsToFrame(
-                              this.state.videoEndSecs,
-                              currentMetadata ? currentMetadata["fps"] : 0
-                            ) || 0
+                          : secsToFrame(this.state.videoEndSecs, this.fps) || 0
                       }
                       onChange={this.videoPreviewChange}
-                      fps={currentMetadata ? currentMetadata["fps"] : null}
+                      fps={this.fps}
                       src={this.state.videoSrc}
                       end={this.state.videoEndSecs}
                     />
