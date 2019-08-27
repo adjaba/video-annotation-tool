@@ -91,6 +91,7 @@ class AnnotationApp extends Component {
     this.initialize = this.initialize.bind(this);
     this.jsonblank = null;
     this.fps = 0;
+    this.pauseFunc = null;
   }
 
   handlers = {
@@ -241,10 +242,12 @@ class AnnotationApp extends Component {
       const duration = videojs("videoJS").duration();
       if (isNaN(duration)) {
         player.one("loadedmetadata", () => {
-          document.getElementById("play_section").click();
+          this.playSection();
+          // document.getElementById("play_section").click();
         });
       } else {
-        document.getElementById("play_section").click();
+        this.playSection();
+        // document.getElementById("play_section").click();
       }
     }
   }
@@ -520,17 +523,23 @@ class AnnotationApp extends Component {
   /**
    * playSection - plays video from this.state.segmentStart to this.state.segmentEnd if the latter is bigger than the former
    */
-  async playSection() {
+  async playSection(
+    startInput = this.state.segmentStart,
+    endInput = this.state.segmentEnd
+  ) {
     var fps = this.fps;
 
     var myPlayer = videojs.getPlayer("videoJS");
-    var startInput = this.state.segmentStart;
-    var endInput = this.state.segmentEnd;
+    // var startInput = this.state.segmentStart;
+    // var endInput = this.state.segmentEnd;
     var start = frameToSecs(startInput, fps) || 0;
-
     var end = frameToSecs(endInput, fps) || myPlayer.duration();
-
+    console.log(start, end);
     if (end >= start) {
+      if (this.pauseFunc) {
+        myPlayer.off("timeupdate", this.pauseFunc);
+        this.pauseFunc = null;
+      }
       myPlayer.currentTime(start);
       var pauseFunc = function(e) {
         if (myPlayer.currentTime() >= end) {
@@ -539,6 +548,7 @@ class AnnotationApp extends Component {
         }
       };
       myPlayer.on("timeupdate", pauseFunc);
+      this.pauseFunc = pauseFunc;
       myPlayer.play();
     } else {
       alert("end time" + end + "should be bigger than start time" + start);
@@ -1063,7 +1073,7 @@ class AnnotationApp extends Component {
                   segmentIndex: prop["segmentIndex"],
                   visibleScenesActions: true
                 });
-                document.getElementById("play_section").click();
+                this.playSection(prop["segment"][0], prop["segment"][1]);
               }}
               onDeleteClick={e => {
                 this.deleteEventFromSidebar(prop["segmentIndex"]);
@@ -1372,7 +1382,8 @@ class AnnotationApp extends Component {
                   display: "flex",
                   flexDirection: "column",
                   backgroundColor: "#fff",
-                  padding: "5px"
+                  padding: "5px",
+                  maxWidth: 360
                 }}
               >
                 <h4 style={{ margin: "5px" }}>
@@ -1541,7 +1552,7 @@ class AnnotationApp extends Component {
                         content="Play section"
                         icon="play"
                         labelPosition="left"
-                        onClick={this.playSection}
+                        onClick={() => this.playSection()}
                         style={{ marginTop: "5px" }}
                       />
                       <Button
