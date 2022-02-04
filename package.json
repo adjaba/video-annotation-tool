@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "concurrently \"cd client && yarn start\" \"cd server && yarn start\""
+    "start": "concurrently \"cd client && yarn start\" \"cd server && yarn start\"",
+    "build": "cd client && yarn build && cd .. && env PORT=3000 NODE_ENV=production node server/src/index.js"
   },
   "dependencies": {
     "concurrently": "^4.1.0",
