@@ -1,0 +1,34 @@
+name: Client CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  CI: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: rm -rf node_modules && yarn install --frozen-lockfile
+      - name: Install client dependencies
+        run: cd client && rm -rf node_modules && yarn install --frozen-lockfile && cd ..
+      - name: Install server dependencies
+        run: cd server && rm -rf node_modules && yarn install --frozen-lockfile && cd ..
+      - name: Build client
+        run: cd client && yarn build && cd ..
+      # - run: env PORT=3000 NODE_ENV=production node server/src/index.js

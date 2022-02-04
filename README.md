@@ -49,7 +49,7 @@ yarn install
 Build the client app:
 
 ```bash
-cd client && yarn run build ** cd ..
+cd client && yarn run build && cd ..
 ```
 
 Run the server app in production mode serving the client build:
