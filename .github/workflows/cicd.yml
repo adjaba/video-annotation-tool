@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [master, cicd]
 
+env:
+  CI: ""
+
 jobs:
   build:
     runs-on: ubuntu-latest
