@@ -23,5 +23,5 @@ jobs:
       - name: Install dependencies
         run: yarn install
       - run: cd client && yarn install && cd ..
-      - run: cd server && yarn install
+      - run: cd server && yarn install && cd ..
       - run: yarn build
