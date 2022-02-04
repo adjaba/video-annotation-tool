@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
-      - run: rm -rf node_modules && yarn install --frozen-lockfile
+        run: rm -rf node_modules && yarn install --frozen-lockfile
       - run: cd client && rm -rf node_modules && yarn install --frozen-lockfile && cd ..
       - run: cd server && rm -rf node_modules && yarn install --frozen-lockfile && cd ..
       - run: cd client && yarn build && cd ..
